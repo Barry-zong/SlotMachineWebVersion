@@ -1,4 +1,4 @@
-﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -48,7 +48,7 @@
       }
       .win-overlay[data-mode="win"] .overlay-bg {
         background: url("./images/winBackground.png") center/cover no-repeat;
-        opacity: 0.9;
+        opacity: 0.9；
       }
       .win-overlay[data-mode="win"] .overlay-text {
         display: none;
@@ -180,26 +180,6 @@
         }
         try { localStorage.removeItem('spinLocked'); } catch (_) {}
 
-        // --- 新增代码：发送数据到后端 ---
-        function recordSpinResult(spinData, playerData) {
-          const payload = {
-            educationLevel: playerData.educationLevel,
-            wageLevel: playerData.wageLevel,
-            occupationCategory: playerData.occupationCategory,
-            premiumCoins: playerData.premiumCoins,
-            result: spinData.code || 'Unknown',
-          };
-
-          fetch('/api/record', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          })
-          .then(res => res.json())
-          .then(data => console.log('记录成功:', data))
-          .catch(err => console.error('记录失败:', err));
-        }
-
         try {
           const raw = localStorage.getItem('lastSpin');
           if (!raw) throw new Error('no data');
@@ -229,8 +209,6 @@
             if (approvedStamp) approvedStamp.classList.add('is-active');
             hideEduToast();
           }
-          // 无论成功或失败，都记录数据
-          recordSpinResult(data, playerInfo);
         } catch (e) {
           elCode.textContent = '---';
           elFull.textContent = 'No result';
