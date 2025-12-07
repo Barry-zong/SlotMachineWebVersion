@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "npx vercel dev"
   },
   "dependencies": {
     "@vercel/kv": "^1.0.1"
