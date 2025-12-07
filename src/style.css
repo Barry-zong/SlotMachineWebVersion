@@ -1,0 +1,250 @@
+:root {
+  color-scheme: light dark;
+  font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  background: radial-gradient(circle at top, #253c61 0%, #253c61 60%, #253c61 100%);
+  color: #f5f6fb;
+  font-size: 18px; /* Slightly larger base for small screens */
+}
+
+body,
+html {
+  margin: 0;
+  min-height: 100%;
+  height: 100%; /* fallback for % heights */
+  overflow: hidden; /* remove stray scrollbars */
+  position: relative;
+}
+
+/* Matrix rain canvas background */
+#matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.app {
+  /* Ensure the app fills the visible viewport height across browsers */
+  min-height: 100vh;   /* fallback */
+  min-height: 100svh;  /* small viewport unit (mobile address bar shown) */
+  min-height: 100dvh;  /* dynamic viewport unit (preferred) */
+  box-sizing: border-box; /* include padding within viewport height */
+  padding: 3rem 1.5rem calc(4rem + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.8rem, 6vw, 4.4rem);
+  letter-spacing: 0.08em;
+}
+
+.hint {
+  margin: 0;
+  color: #b5b9de;
+  font-size: clamp(1.1rem, 3.6vw, 1.6rem);
+}
+.hintS {
+  margin: 0;
+  color: #b5b9de;
+  font-size: clamp(0.9rem, 2.8vw, 1.2rem);
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.hintS.hidden {
+  opacity: 0;
+}
+
+.slot-machine {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  border-radius: 1.8rem;
+  background: linear-gradient(145deg, #1a1f3a, #2a2f4d);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: visible;
+}
+
+/* Light layer effect for slot machine */
+.slot-machine::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 1.8rem;
+  padding: 2px;
+  background: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 40%,
+    rgba(0, 0, 0, 0.1) 60%,
+    rgba(0, 0, 0, 0.2) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Subtle glow on top edge */
+.slot-machine::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  filter: blur(2px);
+  z-index: 2;
+}
+
+.reel {
+  width: clamp(160px, 20vw, 220px);
+  aspect-ratio: 1 / 1;
+  border-radius: 1.2rem;
+  overflow: visible;
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #0d0f1e, #1a1c2e);
+  box-shadow:
+    inset 0 4px 12px rgba(0, 0, 0, 0.6),
+    inset 0 -2px 8px rgba(255, 255, 255, 0.03),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Inner light effect for reel */
+.reel::before {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 0.8rem;
+  background: radial-gradient(circle at 30% 30%,
+    rgba(120, 179, 255, 0.08) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Subtle border highlight */
+.reel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.reel .glyph {
+  font-size: clamp(3.2rem, 10vw, 4.4rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: #e8ecf5;
+  text-transform: uppercase;
+  font-family: "JetBrains Mono", "Segoe UI", "PingFang SC", sans-serif;
+  transition: transform 0.2s ease;
+  position: relative;
+  z-index: 3;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(120, 179, 255, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.reel.has-glow .glyph {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(120, 179, 255, 0.6),
+    0 0 40px rgba(120, 179, 255, 0.4);
+}
+
+.reel.is-spinning .glyph {
+  animation: wobble 0.3s linear infinite, glowPulse 0.6s ease-in-out infinite;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 8px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(120, 179, 255, 0.6),
+    0 0 40px rgba(120, 179, 255, 0.4);
+}
+
+/* Enhanced glow effect when spinning */
+.reel.is-spinning::before {
+  background: radial-gradient(circle at 30% 30%,
+    rgba(120, 179, 255, 0.15) 0%,
+    transparent 60%
+  );
+}
+
+@keyframes wobble {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(2deg) scale(1.1);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) brightness(1);
+  }
+  50% {
+    filter: drop-shadow(0 4px 12px rgba(120, 179, 255, 0.5)) brightness(1.1);
+  }
+}
+
+button#spin-button {
+  appearance: none;
+  border: none;
+  padding: 0.9rem 2.4rem;
+  font-size: 1.4rem;
+  border-radius: 999px;
+  color: #111428;
+  background: linear-gradient(160deg, #ffd86f, #f8a21a);
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 30px rgba(255, 196, 45, 0.35);
+}
+
+button#spin-button:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 8px 18px rgba(255, 196, 45, 0.3);
+}
+html, body {  }
+#status {
+  min-height: 1.2em;
+  font-weight: 500;
+  color: #c1ebff6f;
+  font-size: 1.1rem;
+}

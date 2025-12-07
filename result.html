@@ -1,0 +1,254 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lottery Result - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+    <style>
+      :root { --blue:#0b64d8; --panel:#ffffff; --text:#0f1426; }
+      html, body { height: 100%; margin: 0; overflow: hidden; font-family: Segoe UI, system-ui, -apple-system, Roboto, sans-serif; }
+      body { background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%); }
+      .win-overlay {
+        position: fixed;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        z-index: 0;
+      }
+      .win-overlay.is-active {
+        opacity: 1;
+      }
+      .win-overlay .overlay-bg {
+        position: absolute;
+        inset: 0;
+        background: none;
+        opacity: 0.8;
+      }
+      .win-overlay .overlay-text {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        grid-auto-rows: minmax(32px, 5vh);
+        gap: clamp(4px, 0.6vw, 10px);
+        align-content: stretch;
+        justify-items: center;
+        padding: 4vh 4vw;
+        font-size: clamp(12px, 3vw, 26px);
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        color: rgba(255,255,255,0.01);
+        text-transform: uppercase;
+      }
+      .win-overlay[data-mode="lose"] .overlay-bg {
+        background: url("./images/failBackground.png") center/cover no-repeat;
+      }
+      .win-overlay[data-mode="win"] .overlay-bg {
+        background: url("./images/winBackground.png") center/cover no-repeat;
+        opacity: 0.9；
+      }
+      .win-overlay[data-mode="win"] .overlay-text {
+        display: none;
+      }
+      .win-overlay .overlay-text span {
+        white-space: nowrap;
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4vh 2vw;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1;
+      }
+      .card { width: clamp(0px, 60vw, 720px); max-width: 720px; margin-left: auto; margin-right: auto; background: var(--panel); color: var(--text); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.25); padding: clamp(18px, 4vw, 32px); text-align: center; position: relative; }
+      .approved-stamp {
+        position: absolute;
+        left: clamp(-120px, -20vw, -60px);
+        top: clamp(-80px, -10vw, -30px);
+        width: clamp(160px, 45vw, 520px);
+        height: clamp(90px, 28vw, 260px);
+        background: url("./images/approved.png") center/contain no-repeat;
+        opacity: 0;
+        transform: rotate(-0deg);
+        transition: opacity 0.3s ease;
+        z-index: 5;
+        pointer-events: none;
+      }
+      .approved-stamp.is-active {
+        opacity: 1;
+      }
+      .title { margin: 0 0 4px; font-size: clamp(26px, 5.5vw, 36px); font-weight: 800; }
+      .eyebrow { margin: 6px 0 4px; text-transform: uppercase; letter-spacing: 0.24em; font-size: 0.85rem; color: #66739e; }
+      .result-code {
+        font-size: clamp(42px, 12vw, 72px);
+        font-weight: 900;
+        letter-spacing: 0.2em;
+        margin: 8px 0 6px;
+        background: linear-gradient(120deg, #105d9c, #90c2ff, #0b5ed7);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow:
+          0 2px 8px rgba(11, 94, 215, 0.25),
+          0 0 20px rgba(60, 147, 255, 0.35);
+      }
+      .full-term { margin: 0 0 8px; font-size: clamp(18px, 4.2vw, 24px); font-weight: 600; color: #1b2554; }
+      .message { margin: 0 0 16px; font-size: 1.05rem; color: #334275; }
+      .countdown { margin: 18px 0 0; color: #5a6693; font-size: 0.95rem; letter-spacing: 0.08em; }
+      .edu-bonus-toast {
+        position: fixed;
+        left: 50%;
+        bottom: clamp(80px, 12vh, 120px);
+        transform: translate(-50%, 20px);
+        background: rgba(32, 84, 255, 0.92);
+        color: #fff;
+        font-weight: 700;
+        font-size: clamp(0.95rem, 3.0vw, 1.2rem);
+        padding: 0.75rem 1.8rem;
+        border-radius: 999px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.25);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s ease, transform 0.35s ease;
+        z-index: 2;
+        text-align: center;
+        letter-spacing: 0.02em;
+        max-width: 100vw;
+      }
+      .edu-bonus-toast.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+    </style>
+  </head>
+  <body class="crt crt-bulge crt-effect">
+    <div class="win-overlay" id="winOverlay" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="card">
+        <div class="approved-stamp" id="approvedStamp" aria-hidden="true"></div>
+        <h1 class="title">Lottery Result</h1>
+        <!-- <p class="eyebrow">Status</p> -->
+        <div id="result-code" class="result-code">---</div>
+        <p class="full-term" id="full-term">Awaiting spin</p>
+        <p class="message" id="message">Spin to see a result.</p>
+        <p class="countdown" id="countdown">Tap anywhere to return home. 120s…</p>
+      </div>
+    </div>
+    <script>
+      (function(){
+        const elCode = document.getElementById('result-code');
+        const elFull = document.getElementById('full-term');
+        const elMessage = document.getElementById('message');
+        const elCountdown = document.getElementById('countdown');
+        const overlay = document.getElementById('winOverlay');
+        const approvedStamp = document.getElementById('approvedStamp');
+        let eduToast;
+
+        function ensureEduToast() {
+          if (eduToast) return eduToast;
+          eduToast = document.createElement('div');
+          eduToast.className = 'edu-bonus-toast';
+          eduToast.textContent = 'Because of your advanced degree, you may try again in six months. Good luck!';
+          document.body.appendChild(eduToast);
+          return eduToast;
+        }
+
+        function showEduToast() {
+          const toast = ensureEduToast();
+          toast.classList.add('is-visible');
+          setTimeout(() => toast.classList.remove('is-visible'), 4000);
+        }
+
+        function hideEduToast() {
+          if (eduToast) eduToast.classList.remove('is-visible');
+        }
+
+        function activateOverlay({ text = '', mode = 'lose' } = {}){
+          if (!overlay) return;
+          overlay.dataset.mode = mode;
+          const count = Math.ceil(window.innerHeight / 20) * 40;
+          const spans = Array.from({ length: count }, () => `<span>${text}</span>`).join('');
+          const textBlock = mode === 'lose' ? `<div class="overlay-text">${spans}</div>` : '<div class="overlay-text"></div>';
+          overlay.innerHTML = `<div class="overlay-bg"></div>${textBlock}`;
+          overlay.classList.add('is-active');
+        }
+        try { localStorage.removeItem('spinLocked'); } catch (_) {}
+
+        try {
+          const raw = localStorage.getItem('lastSpin');
+          if (!raw) throw new Error('no data');
+          const data = JSON.parse(raw);
+          elCode.textContent = data.code || '---';
+          elFull.textContent = data.full || 'Unavailable';
+          elMessage.textContent = data.message || 'Please spin again.';
+
+          const rawChance = parseFloat(localStorage.getItem('spinWinChance') || '0');
+          const chanceText = Number.isFinite(rawChance) ? `${(rawChance * 100).toFixed(1)}%` : '0%';
+          const playerInfo = (() => {
+            try {
+              return JSON.parse(localStorage.getItem('playerInfo') || '{}') || {};
+            } catch (_) {
+              return {};
+            }
+          })();
+          const highEdu = ["Master's", "PhD", "Above PhD"];
+          const hasHighEdu = highEdu.includes((playerInfo.educationLevel || '').trim());
+
+          if ((data.code || '').toUpperCase() !== 'H1B') {
+            activateOverlay({ text: chanceText, mode: 'lose' });
+            if (approvedStamp) approvedStamp.classList.remove('is-active');
+            if (hasHighEdu) showEduToast();
+          } else {
+            activateOverlay({ mode: 'win' });
+            if (approvedStamp) approvedStamp.classList.add('is-active');
+            hideEduToast();
+          }
+        } catch (e) {
+          elCode.textContent = '---';
+          elFull.textContent = 'No result';
+          elMessage.textContent = 'Spin to see a result.';
+          if (overlay) {
+            overlay.innerHTML = '';
+            overlay.classList.remove('is-active');
+            delete overlay.dataset.mode;
+          }
+          if (approvedStamp) approvedStamp.classList.remove('is-active');
+          hideEduToast();
+        }
+
+        let seconds = 120;
+        const updateCountdown = () => {
+          if (!elCountdown) return;
+          elCountdown.textContent = `Tap anywhere to return home, ${seconds}s…`;
+        };
+        updateCountdown();
+        const timer = setInterval(() => {
+          seconds -= 1;
+          updateCountdown();
+          if (seconds <= 0) {
+            clearInterval(timer);
+            window.location.href = './screensaver.html';
+          }
+        }, 1000);
+
+        function goHome() {
+          window.location.href = './screensaver.html';
+        }
+        document.body.addEventListener('click', goHome);
+        const card = document.querySelector('.card');
+        if (card) {
+          card.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goHome();
+          });
+        }
+      })();
+    </script>
+  </body>
+  </html>

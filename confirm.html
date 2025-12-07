@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Loading & Terms - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+    <style>
+      :root {
+        --blue: #0b64d8; --text: #0f1426; --panel: #ffffff;
+        --track: rgba(255,255,255,0.5); --bar: #ffffff; --bar2: #e6e6e6;
+        --accent: #2f00ff; --accent2: #0206d1;
+      }
+      html, body {
+        height: 100%; margin: 0; overflow: hidden;
+        font-family: "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%);
+        color: #0f1426;
+      }
+      .page { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3vh; padding: 4vh; position: relative; }
+      .page::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("./images/LogoOutline.png") center 10%/ clamp(360px, 90vmin, 900px) no-repeat;
+        opacity: 0.3;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .page > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Top: progress */
+      .top { display: grid; place-items: center; }
+      .progress { width: clamp(320px, 60vw, 720px); max-width: 720px; margin-left: auto; margin-right: auto; }
+      .bar-track {
+        height: 24px; border-radius: 8px; background: var(--track); overflow: hidden;
+        box-shadow: inset 0 2px 10px rgba(0,0,0,.25);
+        display: flex; gap: 4px; padding: 4px;
+      }
+      .bar-block {
+        flex: 1; background: rgba(0, 0, 0, 0.2); border-radius: 3px;
+        transition: all 0.3s ease;
+        opacity: 0;
+      }
+      .bar-block.visible {
+        opacity: 1;
+      }
+      .bar-block.filled {
+        background: linear-gradient(180deg, var(--bar), var(--bar2));
+      }
+      .progress {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .progress.active {
+        opacity: 1;
+      }
+      .loading-text { text-align: center; color: #eaf1ff; margin-top: 12px; opacity: .9; font-size: clamp(18px, 3.2vmin, 22px); }
+
+      /* Bottom: terms */
+      .bottom {
+        display: grid;
+        place-items: center;
+        /* Ensure horizontal spacing even on very narrow viewports */
+        padding: 0 clamp(12px, 4vw, 24px);
+      }
+      /* Keep sections centered without overlapping */
+      @media (min-width: 768px) and (min-height: 600px) {
+        .page { gap: 2.4vh; }
+        .bottom { margin-top: 0; }
+      }
+      .card {
+        /* Use container width so padding on .bottom is respected (no overflow on narrow screens) */
+        width: clamp(320px, 60vw, 720px); max-width: 720px; margin-left: auto; margin-right: auto;; background: var(--panel); border-radius: 16px; padding: clamp(18px, 4vw, 28px);
+        box-shadow: 0 24px 60px rgba(0,0,0,.25); color: var(--text);
+      }
+      .card .inner { max-width: 720px; margin: 0 auto; text-align: center; }
+      .card h2 { margin: 0 0 12px; font-size: clamp(20px, 4.8vw, 26px); text-align: center; }
+      /* Center the list block, keep each item's text left-aligned */
+      .terms { margin: 0 auto; padding-left: 1.2em; line-height: 1.6; font-size: 1.05rem; display: inline-block; text-align: left; }
+      .agree {
+        display: flex; align-items: center; justify-content: center; width: 100%;
+        gap: 10px; margin-top: 14px; font-weight: 700; text-align: center;
+      }
+      .agree input {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        border: 2px solid #8fb9ff;
+        background: rgba(255, 255, 255, 0.6);
+        transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      }
+      .agree input:not(:checked) {
+        animation: checkboxPulse 2.6s ease-in-out infinite;
+      }
+      .agree input:checked {
+        animation: none;
+        background: linear-gradient(135deg, #2f00ff, #0206d1);
+        border-color: #2f00ff;
+        box-shadow: 0 6px 18px rgba(47, 0, 255, 0.35);
+      }
+      @keyframes checkboxPulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(122, 179, 255, 0.45);
+          background: rgba(255, 255, 255, 0.75);
+        }
+        50% {
+          box-shadow: 0 0 12px 4px rgba(122, 179, 255, 0.4);
+          background: rgba(155, 198, 255, 0.85);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(122, 179, 255, 0.25);
+          background: rgba(255, 255, 255, 0.75);
+        }
+      }
+      .helper { color: #5c6a99; font-size: 1rem; margin-top: 4px; }
+    </style>
+  </head>
+  <body class="crt">
+    <div class="page">
+      <section class="top">
+        <div class="progress" aria-label="Loading">
+          <div class="bar-track" id="barTrack">
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+            <div class="bar-block"></div>
+          </div>
+          <div class="loading-text">Preparing your spin</div>
+        </div>
+      </section>
+
+      <section class="bottom">
+        <div class="card">
+          <div class="inner">
+            <h2>Confirmation</h2>
+            <ul class="terms">
+              <li>I acknowledge the information I provided may be used.</li>
+              <li>I believe the system will be as fair, transparent, and procedurally neutral as possible.</li>
+              <li>I understand paying more may or may not improve my odds.</li>
+            </ul>
+            <label class="agree"><input id="agree" type="checkbox" /> I have read and agree to the above.</label>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const agree = document.getElementById('agree');
+      const progress = document.querySelector('.progress');
+      const blocks = document.querySelectorAll('.bar-block');
+
+      // 复选框点击事件
+      agree.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          // 禁用复选框，防止重复点�?
+          agree.disabled = true;
+
+          // 显示进度�?
+          progress.classList.add('active');
+
+          // 延迟一下再开始填充，让用户看到进度条出现
+          setTimeout(() => {
+            startLoading();
+          }, 300);
+        } else {
+          agree.disabled = false;
+        }
+      });
+
+      // 开始加载动�?
+      function startLoading() {
+        blocks.forEach((block, index) => {
+          setTimeout(() => {
+            block.classList.add('visible');
+            block.classList.add('filled');
+
+            // 如果是最后一个块，加载完成后跳转
+            if (index === blocks.length - 1) {
+              setTimeout(() => {
+                window.location.href = './spin.html';
+              }, 500); // 最后一个块填充后等�?00ms再跳�?
+            }
+          }, index * 300); // 每个块间�?00ms
+        });
+      }
+    </script>
+  </body>
+  </html>
+
+

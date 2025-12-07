@@ -1,0 +1,33 @@
+/* Safe area margins for all pages - increases top and bottom spacing */
+/* Backgrounds remain full-screen, only content gets additional padding */
+
+/* For register.html, coins.html, result.html */
+.wrap {
+  padding-top: clamp(1vh, 10vh, 20vh) !important;
+  padding-bottom: clamp(1vh, 10vh, 15vh) !important;
+}
+
+.wrapCoin {
+  padding-top: clamp(1vh, 35vh, 40vh) !important;
+  padding-bottom: clamp(1vh, 10vh, 15vh) !important;
+}
+
+/* Smaller screens need less padding for register.html to fit content */
+@media (max-height: 700px) {
+  .wrap {
+    padding-top: 2vh !important;
+    padding-bottom: 2vh !important;
+  }
+}
+
+/* For confirm.html */
+.page {
+  padding-top: 0vh !important;
+  padding-bottom: 35vh !important;
+}
+
+/* For spin.html */
+.app {
+  padding-top: 7.6rem !important;
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+}

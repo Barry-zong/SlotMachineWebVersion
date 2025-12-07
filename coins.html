@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Premium Coins - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/coins.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+  </head>
+  <body class="crt crt-bulge crt-effect">
+    <div class="money-rain" id="moneyRain" aria-hidden="true"></div>
+    <div class="wrapCoin">
+      <div class="card">
+        <h1 class="title">Premium Processing Payment</h1>
+        <p class="lead">You can start inserting money by pressing SPACE.</p>
+        <div class="count"><span id="coins" class="num">0</span></div>
+        <p class="hint" id="status">Waiting for $$$$</p>
+        <div class="actions">
+          <button class="btn" id="confirm">Confirm</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Reuse endpoints; avoid import.meta in classic scripts (causes SyntaxError)
+      const PI_WS_URL = window.PI_WS_URL || `ws://${location.hostname}:5000/ws`;
+      const PI_HTTP_BASE = window.PI_HTTP_BASE || `http://${location.hostname}:5000`;
+
+      const elCoins = document.getElementById('coins');
+      const elStatus = document.getElementById('status');
+      const btn = document.getElementById('confirm');
+      const moneyRain = document.getElementById('moneyRain');
+      let moneyRainActive = false;
+      let fullMoneyRainStarted = false;
+
+      let coinCount = 0;
+      try { coinCount = parseInt(localStorage.getItem('premiumCoins') || '0', 10) || 0; } catch (_) {}
+      elCoins.textContent = String(coinCount);
+
+      function updateBackground(){
+        const step = Math.max(0, Math.min(5, coinCount));
+        document.body.setAttribute('data-coins-step', String(step));
+      }
+      updateBackground();
+      function ensureMoneyRainActive(){
+        if (!moneyRain || moneyRainActive) return;
+        moneyRainActive = true;
+        moneyRain.classList.add('is-active');
+      }
+      function spawnBurstBills(count = 1){
+        if (!moneyRain || count <= 0) return;
+        ensureMoneyRainActive();
+        for (let i = 0; i < count; i++){
+          const bill = document.createElement('div');
+          bill.className = 'bill bill-burst';
+          bill.style.setProperty('--x', `${(Math.random() * 100).toFixed(2)}%`);
+          bill.style.setProperty('--delay', '0s');
+          bill.style.setProperty('--duration', `${(3 + Math.random() * 2.5).toFixed(2)}s`);
+          bill.style.setProperty('--sway', `${(Math.random() * 24 - 12).toFixed(2)}deg`);
+          bill.addEventListener('animationend', () => bill.remove());
+          moneyRain.appendChild(bill);
+        }
+      }
+      function startFullMoneyRain(){
+        if (!moneyRain || fullMoneyRainStarted) return;
+        fullMoneyRainStarted = true;
+        ensureMoneyRainActive();
+        const columns = Math.floor(20 + Math.random() * 10);
+        for (let i = 0; i < columns; i++) {
+          const bill = document.createElement('div');
+          bill.className = 'bill';
+          const offset = (i + Math.random() * 0.35) / columns;
+          bill.style.setProperty('--x', `${Math.min(100, offset * 100).toFixed(2)}%`);
+          bill.style.setProperty('--delay', `${(Math.random() * 0.2).toFixed(2)}s`);
+          bill.style.setProperty('--duration', `${(5 + Math.random() * 3.5).toFixed(2)}s`);
+          bill.style.setProperty('--sway', `${(Math.random() * 24 - 12).toFixed(2)}deg`);
+          moneyRain.appendChild(bill);
+        }
+      }
+      if (coinCount >= 5) startFullMoneyRain();
+
+      let lastCoin = false;
+      let lastCoinTs = 0;
+      let sawExternal = false; // becomes true once any WS/HTTP state received
+
+      function addCoinPulse(){
+        const now = Date.now();
+        if (now - lastCoinTs <= 250) return; // cooldown
+        coinCount += 1;
+        elCoins.textContent = String(coinCount);
+        try { localStorage.setItem('premiumCoins', String(coinCount)); } catch(_){ }
+        lastCoinTs = now;
+        updateBackground();
+        if (coinCount >= 5) {
+          startFullMoneyRain();
+        } else {
+          spawnBurstBills(1 + Math.floor(Math.random() * 3));
+        }
+      }
+      let hasReceivedCoin = false; // Track if any coin has been received
+      function handleState(s){
+        if (!s) return;
+        sawExternal = true;
+        if (typeof s.coin === 'boolean'){
+          if (s.coin && !lastCoin) {
+            addCoinPulse();
+            hasReceivedCoin = true; // Mark that we've received at least one coin
+          }
+          lastCoin = !!s.coin;
+          // Update status text based on whether coins have been received
+          if (hasReceivedCoin) {
+            elStatus.textContent = 'Payment received. Probability upgraded';
+          } else {
+            elStatus.textContent = 'Waiting for coin pulses';
+          }
+        }
+      }
+
+      // WebSocket connect + fallback polling
+      function probePiAvailability(){
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
+        return fetch(`${PI_HTTP_BASE}/api/state`, {
+          cache: 'no-store',
+          signal: controller.signal
+        })
+          .then((resp) => resp.ok)
+          .catch(() => false)
+          .finally(() => clearTimeout(timeoutId));
+      }
+
+      let ws;
+      let wsProbeInFlight = false;
+      let wsRetryTimer = null;
+
+      function scheduleWsReconnect(delay = 1500){
+        clearTimeout(wsRetryTimer);
+        wsRetryTimer = setTimeout(()=>{
+          wsRetryTimer = null;
+          ensureWsConnection();
+        }, delay);
+      }
+
+      async function ensureWsConnection(){
+        if (wsProbeInFlight) return;
+        wsProbeInFlight = true;
+        const available = await probePiAvailability();
+        wsProbeInFlight = false;
+        if (!available){
+          scheduleWsReconnect(4000);
+          return;
+        }
+        try{
+          ws = new WebSocket(PI_WS_URL);
+          ws.onmessage = (e)=>{ try{ handleState(JSON.parse(e.data)); }catch(_){} };
+          ws.onclose = ()=> scheduleWsReconnect(1000);
+        }catch(_){
+          scheduleWsReconnect(1500);
+        }
+      }
+      ensureWsConnection();
+      async function poll(){
+        try{ const r = await fetch(`${PI_HTTP_BASE}/api/state`, {cache:'no-cache'}); if(r.ok){ handleState(await r.json()); } }catch(_){ }
+      }
+      setInterval(poll, 1000);
+
+      // For testing: if no WS/HTTP state yet, Space adds a coin pulse
+      window.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !sawExternal) {
+          e.preventDefault();
+          addCoinPulse();
+          elStatus.textContent = 'Simulated coin via Space';
+        }
+      });
+
+      btn.addEventListener('click', ()=>{
+        try {
+          const prev = JSON.parse(localStorage.getItem('playerInfo') || '{}');
+          localStorage.setItem('playerInfo', JSON.stringify({ ...prev, premiumCoins: coinCount, ts: Date.now() }));
+        } catch (_) {}
+        window.location.href = './confirm.html';
+      });
+    </script>
+  </body>
+  </html>
