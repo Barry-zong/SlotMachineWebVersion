@@ -1,18 +1,8 @@
 {
-  "name": "slotmachine",
+  "name": "slot-machine-vercel",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite --open /screensaver.html",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node src/serve.js"
-  },
   "dependencies": {
-    "express": "^4.19.2"
-  },
-  "devDependencies": {
-    "vite": "^7.1.7"
+    "@vercel/kv": "^1.0.1"
   }
 }

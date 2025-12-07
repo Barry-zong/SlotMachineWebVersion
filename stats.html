@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spin Statistics</title>
+  <link rel="stylesheet" href="./src/crt.css" />
+  <style>
+    :root {
+      --bg: #0a1024;
+      --panel: #1a2240;
+      --text: #e0e8ff;
+      --heading: #ffffff;
+      --bar-bg: #2a3661;
+      --bar-fill: #4d94ff;
+      --accent: #ffc857;
+    }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: var(--heading);
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 10px rgba(77, 148, 255, 0.5);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+    .stat-card {
+      background-color: var(--panel);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .stat-card h2 {
+      margin-top: 0;
+      color: var(--heading);
+      border-bottom: 2px solid var(--bar-bg);
+      padding-bottom: 0.5rem;
+    }
+    .stat-item {
+      margin-bottom: 1rem;
+    }
+    .stat-item:last-child {
+      margin-bottom: 0;
+    }
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .stat-label .value {
+      color: var(--accent);
+    }
+    .progress-bar {
+      height: 12px;
+      background-color: var(--bar-bg);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4d94ff, #87baff);
+      border-radius: 6px;
+      transition: width 0.5s ease-in-out;
+    }
+    #loading {
+      text-align: center;
+      font-size: 1.5rem;
+      padding: 4rem;
+    }
+    .home-link {
+      display: block;
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body class="crt">
+  <div class="container">
+    <h1>Lottery Statistics</h1>
+    <div id="loading">Loading data...</div>
+    <div id="stats-container" class="stats-grid" style="display: none;"></div>
+    <a href="./screensaver.html" class="home-link">Back to Home</a>
+  </div>
+
+  <script>
+    function renderStatCard(title, data) {
+      if (!data || Object.keys(data).length === 0) return '';
+      
+      const total = Object.values(data).reduce((sum, count) => sum + Number(count), 0);
+      
+      const itemsHtml = Object.entries(data)
+        .sort(([, a], [, b]) => b - a) // 按数量降序排序
+        .map(([key, value]) => {
+          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+          return `
+            <div class="stat-item">
+              <div class="stat-label">
+                <span>${key}</span>
+                <span class="value">${value} (${percentage}%)</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      return `
+        <div class="stat-card">
+          <h2>${title}</h2>
+          ${itemsHtml}
+        </div>
+      `;
+    }
+
+    async function loadStats() {
+      const response = await fetch('/api/stats');
+      const data = await response.json();
+      
+      const container = document.getElementById('stats-container');
+      container.innerHTML += renderStatCard('Education Level', data.education);
+      container.innerHTML += renderStatCard('Wage Level', data.wage);
+      container.innerHTML += renderStatCard('Occupation', data.occupation);
+      container.innerHTML += renderStatCard('Result', data.result);
+      container.innerHTML += renderStatCard('User Type', data.premium);
+
+      document.getElementById('loading').style.display = 'none';
+      container.style.display = 'grid';
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

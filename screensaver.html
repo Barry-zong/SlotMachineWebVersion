@@ -124,10 +124,23 @@
         window.location.href = url.toString();
       }
 
-      // 点击或触摸进入登记页（不响应键盘事件）
+      // 单击或触摸进入登记页
       const goRegister = () => { navigateTo('register.html'); };
+
+      // 双击进入统计页面
+      let lastClickTime = 0;
+      const handleInteraction = (e) => {
+        const now = Date.now();
+        if (now - lastClickTime < 300) { // 300ms 内双击
+          navigateTo('stats.html');
+        } else {
+          goRegister();
+        }
+        lastClickTime = now;
+      };
+
       ['pointerdown', 'touchstart', 'mousedown'].forEach(evt => {
-        window.addEventListener(evt, goRegister, { once: true });
+        window.addEventListener(evt, handleInteraction, { once: true });
       });
 
       requestAnimationFrame(step);
