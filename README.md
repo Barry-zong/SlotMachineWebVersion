@@ -1,0 +1,2 @@
+# SlotMachineWebVersion
+H1bLuckyLottery
