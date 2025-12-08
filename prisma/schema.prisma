@@ -23,4 +23,9 @@ model UserSelection {
   // Optional: Extra metadata
   ipAddress         String?
   userAgent         String?
+
+  // Fields from the game result
+  coin              Int?
+  winChance         Float?
+  result            String?
 }
