@@ -105,9 +105,6 @@
                 <th>Occupation</th>
                 <th>Premium</th>
                 <th>IP Address</th>
-                <th>Coins</th>
-                <th>Win Chance</th>
-                <th>Result</th>
               </tr>
             </thead>
             <tbody id="tableBody">
@@ -135,16 +132,13 @@
           
           tableBody.innerHTML = data.map(item => `
             <tr>
-              <td>${item.id ?? '-'}</td>
+              <td>${item.id}</td>
               <td>${new Date(item.createdAt).toLocaleString()}</td>
               <td>${item.educationLevel || '-'}</td>
-              <td>${item.wageLevel ? `${item.wageLevel}${item.wageRange ? ' (' + item.wageRange + ')' : ''}` : (item.wageRange || '-')}</td>
+              <td>${item.wageLevel || '-'}</td>
               <td>${item.occupationCategory || '-'}</td>
               <td>${item.premiumProcessing || '-'}</td>
               <td>${item.ipAddress || '-'}</td>
-              <td>${item.coin ?? '-'}</td>
-              <td>${item.winChance ?? '-'}</td>
-              <td>${item.result || '-'}</td>
             </tr>
           `).join('');
           
