@@ -161,7 +161,7 @@
                 <td>${item.educationLevel || '-'}</td>
                 <td>${item.wageLevel ? `${item.wageLevel}${item.wageRange ? ' (' + item.wageRange + ')' : ''}` : (item.wageRange || '-')}</td>
                 <td>${item.occupationCategory || '-'}</td>
-                <td>${item.premiumCoins ?? item.coins ?? '-'}</td>
+                <td>${item.coin ?? item.premiumCoins ?? item.coins ?? '-'}</td>
                 <td>${item.winChance ?? '-'}</td>
                 <td>${(item.resultCode ?? item.result) || '-'}</td>
               </tr>

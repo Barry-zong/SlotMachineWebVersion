@@ -25,7 +25,11 @@ async function ensureTable() {
       "ipAddress" TEXT
     );
   `);
+  // 确保与 Prisma schema 匹配的游戏结果字段存在
   await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
+  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "coin" INTEGER;`);
+  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "winChance" REAL;`);
+  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "result" TEXT;`);
 }
 
 export default async function handler(req, res) {
@@ -40,6 +44,9 @@ export default async function handler(req, res) {
     wageRange,
     occupationCategory,
     premiumProcessing,
+    coin,
+    winChance,
+    result,
   } = req.body || {};
 
   const ipAddress =
@@ -53,11 +60,11 @@ export default async function handler(req, res) {
     const result = await pool.query(
       `
       INSERT INTO "UserSelection"
-        ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress")
-      VALUES ($1, $2, $3, $4, $5, $6)
+        ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress", "coin", "winChance", "result")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *;
       `,
-      [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress]
+      [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress, coin, winChance, result]
     );
 
     res.status(200).json({ success: true, data: result.rows[0] });

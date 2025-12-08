@@ -180,6 +180,34 @@
         }
         try { localStorage.removeItem('spinLocked'); } catch (_) {}
 
+        // 此函数收集整个流程中的所有数据并提交到服务器
+        async function submitFullResult() {
+          try {
+            // 1. 从 localStorage 中收集所有数据
+            const playerInfo = JSON.parse(localStorage.getItem('playerInfo') || '{}');
+            const lastSpin = JSON.parse(localStorage.getItem('lastSpin') || '{}');
+            const winChance = parseFloat(localStorage.getItem('spinWinChance') || '0');
+            const coins = parseInt(localStorage.getItem('premiumCoins') || '0', 10);
+
+            // 2. 将所有数据合并成一个与数据库结构匹配的 payload
+            const finalPayload = {
+              ...playerInfo,
+              coin: coins,
+              winChance: winChance,
+              result: lastSpin.code || null,
+            };
+
+            // 3. 将完整数据发送到服务器
+            await fetch('/api/save-selection', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(finalPayload),
+            });
+          } catch (err) {
+            console.error('Failed to submit full result:', err);
+          }
+        }
+
         try {
           const raw = localStorage.getItem('lastSpin');
           if (!raw) throw new Error('no data');
@@ -209,6 +237,9 @@
             if (approvedStamp) approvedStamp.classList.add('is-active');
             hideEduToast();
           }
+
+          // 将最终的完整数据提交到后端
+          submitFullResult();
         } catch (e) {
           elCode.textContent = '---';
           elFull.textContent = 'No result';

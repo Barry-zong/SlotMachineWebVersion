@@ -604,16 +604,8 @@
           localStorage.setItem('playerInfo', JSON.stringify(finalInfo));
         } catch (_) { }
 
-        // Send to server
-        try {
-          await fetch('/api/save-selection', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalInfo)
-          });
-        } catch (err) {
-          console.error('Failed to save selection', err);
-        }
+        // 数据提交操作已推迟到游戏结束后，
+        // 以便将问卷信息和游戏结果一起发送。
 
         if (premium.toLowerCase().startsWith('yes')) {
           window.location.href = './coins.html';
