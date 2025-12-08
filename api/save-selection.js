@@ -4,7 +4,11 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
+  connectionString:
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
@@ -15,11 +19,13 @@ async function ensureTable() {
       "createdAt" TIMESTAMPTZ DEFAULT NOW(),
       "educationLevel" TEXT,
       "wageLevel" TEXT,
+      "wageRange" TEXT,
       "occupationCategory" TEXT,
       "premiumProcessing" TEXT,
       "ipAddress" TEXT
     );
   `);
+  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
 }
 
 export default async function handler(req, res) {
@@ -31,6 +37,7 @@ export default async function handler(req, res) {
   const {
     educationLevel,
     wageLevel,
+    wageRange,
     occupationCategory,
     premiumProcessing,
   } = req.body || {};
@@ -46,11 +53,11 @@ export default async function handler(req, res) {
     const result = await pool.query(
       `
       INSERT INTO "UserSelection"
-        ("educationLevel", "wageLevel", "occupationCategory", "premiumProcessing", "ipAddress")
-      VALUES ($1, $2, $3, $4, $5)
+        ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress")
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
       `,
-      [educationLevel, wageLevel, occupationCategory, premiumProcessing, ipAddress]
+      [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress]
     );
 
     res.status(200).json({ success: true, data: result.rows[0] });

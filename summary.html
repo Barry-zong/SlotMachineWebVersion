@@ -120,18 +120,16 @@
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Created At</th>
                 <th>Education</th>
                 <th>Wage</th>
                 <th>Occupation</th>
-                <th>Premium</th>
                 <th>Coins</th>
                 <th>Win Chance</th>
                 <th>Result</th>
               </tr>
             </thead>
             <tbody id="tbody">
-              <tr><td colspan="9" class="empty">Loading data...</td></tr>
+              <tr><td colspan="7" class="empty">Loading data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -153,18 +151,16 @@
             const data = await resp.json();
             if (!Array.isArray(data) || data.length === 0) {
               empty.style.display = 'block';
-              tbody.innerHTML = `<tr><td colspan="9" class="empty">No data recorded yet.</td></tr>`;
+              tbody.innerHTML = `<tr><td colspan="7" class="empty">No data recorded yet.</td></tr>`;
               return;
             }
             empty.style.display = 'none';
             tbody.innerHTML = data.map(item => `
               <tr>
                 <td>${item.id ?? '-'}</td>
-                <td>${item.createdAt ? new Date(item.createdAt).toLocaleString() : '-'}</td>
                 <td>${item.educationLevel || '-'}</td>
-                <td>${item.wageLevel || '-'}</td>
+                <td>${item.wageLevel ? `${item.wageLevel}${item.wageRange ? ' (' + item.wageRange + ')' : ''}` : (item.wageRange || '-')}</td>
                 <td>${item.occupationCategory || '-'}</td>
-                <td>${item.premiumProcessing || '-'}</td>
                 <td>${item.premiumCoins ?? item.coins ?? '-'}</td>
                 <td>${item.winChance ?? '-'}</td>
                 <td>${(item.resultCode ?? item.result) || '-'}</td>
@@ -172,7 +168,7 @@
             `).join('');
           } catch (err) {
             console.error(err);
-            tbody.innerHTML = `<tr><td colspan="9" class="empty" style="color:red;">Error loading data. ${err.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="empty" style="color:red;">Error loading data. ${err.message}</td></tr>`;
           }
         }
 
