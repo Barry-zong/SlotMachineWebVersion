@@ -1,75 +1,65 @@
-import { createClient } from '@vercel/postgres'
+// api/save-selection.js
 
-let tableEnsured = false
-let _client
+import pkg from 'pg';
+const { Pool } = pkg;
 
-async function getClient() {
-  if (!_client) {
-    const connectionString =
-      process.env.POSTGRES_URL ??
-      process.env.POSTGRES_PRISMA_URL ??
-      process.env.POSTGRES_URL_NON_POOLING ??
-      process.env.DATABASE_URL
-
-    if (!connectionString) {
-      throw new Error('No Postgres connection string configured (POSTGRES_URL / POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING / DATABASE_URL)')
-    }
-
-    _client = createClient({ connectionString })
-    await _client.connect()
-  }
-  return _client
-}
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 async function ensureTable() {
-  if (tableEnsured) return
-  const client = await getClient()
-  await client.sql`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS "UserSelection" (
-      "id" SERIAL PRIMARY KEY,
-      "createdAt" TIMESTAMP DEFAULT NOW(),
+      id SERIAL PRIMARY KEY,
+      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
       "educationLevel" TEXT,
       "wageLevel" TEXT,
       "occupationCategory" TEXT,
       "premiumProcessing" TEXT,
-      "ipAddress" TEXT,
-      "userAgent" TEXT
+      "ipAddress" TEXT
     );
-  `
-  tableEnsured = true
+  `);
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST')
-    return res.status(405).end('Method Not Allowed')
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
+  const {
+    educationLevel,
+    wageLevel,
+    occupationCategory,
+    premiumProcessing,
+  } = req.body || {};
+
+  const ipAddress =
+    req.headers['x-forwarded-for']?.split(',')[0]?.trim() ??
+    req.socket?.remoteAddress ??
+    null;
+
   try {
-    await ensureTable()
-    const buffers = []
-    for await (const chunk of req) {
-      buffers.push(chunk)
-    }
-    const bodyString = Buffer.concat(buffers).toString() || '{}'
-    const { educationLevel, wageLevel, occupationCategory, premiumProcessing } = JSON.parse(bodyString)
-    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null
-    const userAgent = req.headers['user-agent'] || null
+    await ensureTable();
 
-    const client = await getClient()
-    const { rows } = await client.sql`
-      INSERT INTO "UserSelection" ("educationLevel", "wageLevel", "occupationCategory", "premiumProcessing", "ipAddress", "userAgent")
-      VALUES (${educationLevel}, ${wageLevel}, ${occupationCategory}, ${premiumProcessing}, ${ipAddress}, ${userAgent})
-      RETURNING *
-    `
+    const result = await pool.query(
+      `
+      INSERT INTO "UserSelection"
+        ("educationLevel", "wageLevel", "occupationCategory", "premiumProcessing", "ipAddress")
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+      `,
+      [educationLevel, wageLevel, occupationCategory, premiumProcessing, ipAddress]
+    );
 
-    return res.status(201).json(rows[0])
+    res.status(200).json({ success: true, data: result.rows[0] });
   } catch (err) {
-    console.error('Error saving selection:', err)
-    return res.status(500).json({
+    console.error('Error in /api/save-selection:', err);
+    res.status(500).json({
       error: 'Failed to save selection',
-      message: err?.message || String(err),
-      code: err?.code || null,
-    })
+      message: err.message,
+      code: err.code ?? null,
+    });
   }
 }
