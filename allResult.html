@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>All Data - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+    <style>
+      :root { --blue:#0b64d8; --panel:#ffffff; --text:#0f1426; }
+      html, body { min-height: 100%; margin: 0; font-family: Segoe UI, system-ui, -apple-system, Roboto, sans-serif; }
+      body { 
+        background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%); 
+        overflow-y: auto; /* Allow scrolling */
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 4vh 2vw;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1;
+      }
+      .card { 
+        width: clamp(320px, 90vw, 1200px); 
+        margin-left: auto; 
+        margin-right: auto; 
+        background: var(--panel); 
+        color: var(--text); 
+        border-radius: 16px; 
+        box-shadow: 0 24px 60px rgba(0,0,0,.25); 
+        padding: clamp(18px, 4vw, 32px); 
+        position: relative; 
+      }
+      .title { margin: 0 0 20px; font-size: clamp(24px, 4vw, 32px); font-weight: 800; text-align: center; }
+      
+      .data-table-container {
+        overflow-x: auto;
+      }
+      
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      
+      th, td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      
+      th {
+        background-color: #f8f9fa;
+        font-weight: 700;
+        color: #334275;
+        white-space: nowrap;
+      }
+      
+      tr:last-child td {
+        border-bottom: none;
+      }
+      
+      tr:hover {
+        background-color: #f5f7ff;
+      }
+      
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #5c6a99;
+      }
+
+      .btn-back {
+        display: inline-block;
+        margin-bottom: 20px;
+        padding: 8px 16px;
+        background: #eef2ff;
+        color: #334275;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: background 0.2s;
+      }
+      .btn-back:hover {
+        background: #dfe6ff;
+      }
+    </style>
+  </head>
+  <body class="crt crt-effect">
+    <div class="wrap">
+      <div class="card">
+        <a href="./index.html" class="btn-back">← Back to Home</a>
+        <h1 class="title">All Collected Data</h1>
+        <div class="data-table-container">
+          <table id="dataTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Created At</th>
+                <th>Education</th>
+                <th>Wage Level</th>
+                <th>Occupation</th>
+                <th>Premium</th>
+                <th>IP Address</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="7" class="empty-state">Loading data...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script>
+      (async function(){
+        const tableBody = document.getElementById('tableBody');
+        
+        try {
+          const response = await fetch('/api/selections');
+          if (!response.ok) throw new Error('Failed to fetch');
+          const data = await response.json();
+          
+          if (data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="7" class="empty-state">No data recorded yet.</td></tr>';
+            return;
+          }
+          
+          tableBody.innerHTML = data.map(item => `
+            <tr>
+              <td>${item.id}</td>
+              <td>${new Date(item.createdAt).toLocaleString()}</td>
+              <td>${item.educationLevel || '-'}</td>
+              <td>${item.wageLevel || '-'}</td>
+              <td>${item.occupationCategory || '-'}</td>
+              <td>${item.premiumProcessing || '-'}</td>
+              <td>${item.ipAddress || '-'}</td>
+            </tr>
+          `).join('');
+          
+        } catch (err) {
+          console.error(err);
+          tableBody.innerHTML = '<tr><td colspan="7" class="empty-state" style="color: red;">Error loading data. Make sure the server is running.</td></tr>';
+        }
+      })();
+    </script>
+  </body>
+</html>

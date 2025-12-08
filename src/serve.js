@@ -65,6 +65,32 @@ app.post("/api/save-selection", async (req, res) => {
   }
 });
 
+// API endpoint to list saved selections (for debugging/analytics)
+app.get("/api/selections", async (_req, res) => {
+  try {
+    const selections = await prisma.userSelection.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(selections);
+  } catch (err) {
+    console.error("Error fetching selections:", err);
+    res.status(500).json({ error: "Failed to fetch selections" });
+  }
+});
+
+// API endpoint to list all registered players
+app.get("/api/players", async (_req, res) => {
+  try {
+    const players = await prisma.players.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+    res.json(players);
+  } catch (err) {
+    console.error("Error fetching players:", err);
+    res.status(500).json({ error: "Failed to fetch players" });
+  }
+});
+
 // --- Static File Serving ---
 // 提供 dist 目录下的静态资源（这是 Vite build 的默认输出目录）
 const staticPath = path.join(__dirname, "../dist");
