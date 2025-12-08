@@ -3,6 +3,7 @@ import express from "express";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import db from "./db.js"; // 引入我们的数据库模块
+import prisma from "./prisma.js";
 
 // 在代码的最顶端加载 .env.local 文件中的环境变量
 dotenv.config();
@@ -33,6 +34,34 @@ app.post("/api/register", async (req, res) => {
   } catch (err) {
     console.error("Error during registration:", err);
     res.status(500).json({ error: "Database error" });
+  }
+});
+
+// API endpoint to save user selections
+app.post("/api/save-selection", async (req, res) => {
+  try {
+    const { educationLevel, wageLevel, occupationCategory, premiumProcessing } = req.body;
+    
+    // Optional: capture basic metadata if available
+    const ipAddress = req.ip || req.connection.remoteAddress;
+    const userAgent = req.get('User-Agent');
+
+    const selection = await prisma.userSelection.create({
+      data: {
+        educationLevel,
+        wageLevel,
+        occupationCategory,
+        premiumProcessing,
+        ipAddress,
+        userAgent
+      }
+    });
+
+    console.log("Selection saved:", selection);
+    res.status(201).json(selection);
+  } catch (err) {
+    console.error("Error saving selection:", err);
+    res.status(500).json({ error: "Failed to save selection" });
   }
 });
 

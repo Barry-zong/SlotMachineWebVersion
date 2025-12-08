@@ -558,7 +558,7 @@
     rail.setAttribute('aria-label', 'Education Level');
     renderOptions(Q1);
 
-    confirmBtn.addEventListener('click', () => {
+    confirmBtn.addEventListener('click', async () => {
       const sel = items.find(el => el.classList.contains('selected'));
       if (!sel) return;
       if (step === 1) {
@@ -597,10 +597,24 @@
         renderOptions(Q4);
       } else {
         const premium = sel.dataset.value || '';
+        let finalInfo = {};
         try {
           const prev = JSON.parse(localStorage.getItem('playerInfo') || '{}');
-          localStorage.setItem('playerInfo', JSON.stringify({ ...prev, premiumProcessing: premium, ts: Date.now() }));
+          finalInfo = { ...prev, premiumProcessing: premium, ts: Date.now() };
+          localStorage.setItem('playerInfo', JSON.stringify(finalInfo));
         } catch (_) { }
+
+        // Send to server
+        try {
+          await fetch('/api/save-selection', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(finalInfo)
+          });
+        } catch (err) {
+          console.error('Failed to save selection', err);
+        }
+
         if (premium.toLowerCase().startsWith('yes')) {
           window.location.href = './coins.html';
         } else {
@@ -612,5 +626,3 @@
 </body>
 
 </html>
-
-

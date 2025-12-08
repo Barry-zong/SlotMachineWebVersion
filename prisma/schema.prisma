@@ -1,0 +1,26 @@
+// This is your Prisma schema file
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  // Default output is node_modules/.prisma/client, which allows standard import:
+  // import { PrismaClient } from '@prisma/client'
+}
+
+model UserSelection {
+  id                Int      @id @default(autoincrement())
+  createdAt         DateTime @default(now())
+  
+  // Fields from the registration form
+  educationLevel    String?
+  wageLevel         String?
+  occupationCategory String?
+  premiumProcessing String?
+  
+  // Optional: Extra metadata
+  ipAddress         String?
+  userAgent         String?
+}
