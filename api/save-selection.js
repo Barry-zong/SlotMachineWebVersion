@@ -11,6 +11,10 @@ async function getClient() {
       process.env.POSTGRES_URL_NON_POOLING ??
       process.env.DATABASE_URL
 
+    if (!connectionString) {
+      throw new Error('No Postgres connection string configured (POSTGRES_URL / POSTGRES_PRISMA_URL / POSTGRES_URL_NON_POOLING / DATABASE_URL)')
+    }
+
     _client = createClient({ connectionString })
     await _client.connect()
   }
