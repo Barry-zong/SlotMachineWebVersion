@@ -1,53 +1,30 @@
 // api/selections.js
-
-import pkg from 'pg';
-const { Pool } = pkg;
-
-// 用 Prisma 提供的 POSTGRES_URL 直接连 db.prisma.io
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // 连接 cloud postgres 常用
-});
-
-// 确保建表
-async function ensureTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS "UserSelection" (
-      id SERIAL PRIMARY KEY,
-      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-      "educationLevel" TEXT,
-      "wageLevel" TEXT,
-      "wageRange" TEXT,
-      "occupationCategory" TEXT,
-      "premiumProcessing" TEXT,
-      "ipAddress" TEXT
-    );
-  `);
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
-}
+import prisma from '../../prisma';
 
 export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    res.setHeader('Allow', ['GET']);
+    res.status(405).json({ error: 'Method Not Allowed' });
+    return;
+  }
+
   try {
-    await ensureTable();
-
-    const result = await pool.query(`
-      SELECT "id", "createdAt", "educationLevel", "wageLevel", "wageRange",
-             "occupationCategory", "premiumProcessing", "ipAddress"
-      FROM "UserSelection"
-      ORDER BY "createdAt" DESC;
-    `);
-
-    res.status(200).json(result.rows);
-  } catch (err) {
-    console.error('Error in /api/selections:', err);
-    res.status(500).json({
-      error: 'Failed to fetch selections',
-      message: err.message,
-      code: err.code ?? null,
+    // 使用 Prisma Client 获取所有记录。
+    // 默认情况下，findMany 会返回所有字段，这正是我们需要的。
+    // 按创建时间降序排序，以首先显示最新的结果。
+    const selections = await prisma.userSelection.findMany({
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    res.status(200).json(selections);
+  } catch (err) {
+    console.error('Error fetching selections:', err);
+    // 如果表尚不存在，则返回一个空数组而不是错误
+    if (err.code === 'P2021' || (err.message && err.message.includes("does not exist"))) {
+       return res.status(200).json([]);
+    }
+    res.status(500).json({ error: 'Failed to fetch selections', message: err.message });
   }
 }
