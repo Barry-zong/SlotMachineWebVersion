@@ -112,7 +112,7 @@
             </thead>
             <tbody id="tableBody">
               <tr>
-                <td colspan="7" class="empty-state">Loading data...</td>
+                <td colspan="10" class="empty-state">Loading data...</td>
               </tr>
             </tbody>
           </table>
@@ -124,18 +124,18 @@
         const tableBody = document.getElementById('tableBody');
         
         try {
-          const response = await fetch('/api/selections');
+          const response = await fetch('/api/selections', { cache: 'no-store' });
           if (!response.ok) throw new Error('Failed to fetch');
           const data = await response.json();
           
           if (data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="7" class="empty-state">No data recorded yet.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10" class="empty-state">No data recorded yet.</td></tr>';
             return;
           }
           
           tableBody.innerHTML = data.map(item => `
             <tr>
-              <td>${item.id ?? '-'}</td>
+              <td>${item.id}</td>
               <td>${new Date(item.createdAt).toLocaleString()}</td>
               <td>${item.educationLevel || '-'}</td>
               <td>${item.wageLevel ? `${item.wageLevel}${item.wageRange ? ' (' + item.wageRange + ')' : ''}` : (item.wageRange || '-')}</td>
@@ -150,7 +150,7 @@
           
         } catch (err) {
           console.error(err);
-          tableBody.innerHTML = '<tr><td colspan="7" class="empty-state" style="color: red;">Error loading data. Make sure the server is running.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="10" class="empty-state" style="color: red;">Error loading data. Make sure the server is running.</td></tr>';
         }
       })();
     </script>

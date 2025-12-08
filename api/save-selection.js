@@ -1,40 +1,10 @@
 // api/save-selection.js
-
-import pkg from 'pg';
-const { Pool } = pkg;
-
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
-
-async function ensureTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS "UserSelection" (
-      id SERIAL PRIMARY KEY,
-      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-      "educationLevel" TEXT,
-      "wageLevel" TEXT,
-      "wageRange" TEXT,
-      "occupationCategory" TEXT,
-      "premiumProcessing" TEXT,
-      "ipAddress" TEXT
-    );
-  `);
-  // 确保与 Prisma schema 匹配的游戏结果字段存在
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "coin" INTEGER;`);
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "winChance" REAL;`);
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "result" TEXT;`);
-}
+import prisma from '../../prisma'; // 导入 Prisma Client 实例
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Allow', ['POST']);
+    res.status(405).json({ error: 'Method Not Allowed' });
     return;
   }
 
@@ -58,21 +28,24 @@ export default async function handler(req, res) {
     null;
 
   try {
-    await ensureTable();
+    // 使用 Prisma Client 创建新记录
+    const savedSelection = await prisma.userSelection.create({
+      data: {
+        educationLevel,
+        wageLevel,
+        wageRange,
+        occupationCategory,
+        premiumProcessing,
+        ipAddress,
+        coin,
+        winChance,
+        result,
+      },
+    });
 
-    const dbResult = await pool.query(
-      `
-      INSERT INTO "UserSelection"
-        ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress", "coin", "winChance", "result")
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING *;
-      `,
-      [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress, coin, winChance, result]
-    );
-
-    res.status(200).json({ success: true, data: dbResult.rows[0] });
+    res.status(200).json({ success: true, data: savedSelection });
   } catch (err) {
-    console.error('Error in /api/save-selection:', err);
+    console.error('Error in /api/save-selection (Prisma):', err);
     res.status(500).json({
       error: 'Failed to save selection',
       message: err.message,

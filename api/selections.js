@@ -16,6 +16,9 @@ export default async function handler(req, res) {
       orderBy: {
         createdAt: 'desc',
       },
+      // 绕过 Prisma Accelerate 缓存，以确保在 schema 更改后获取最新数据。
+      // ttl: 0 禁用了缓存读取。
+      cacheStrategy: { ttl: 0 },
     });
 
     res.status(200).json(selections);

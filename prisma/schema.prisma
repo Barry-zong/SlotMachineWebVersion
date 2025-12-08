@@ -17,6 +17,7 @@ model UserSelection {
   // Fields from the registration form
   educationLevel    String?
   wageLevel         String?
+  wageRange         String?
   occupationCategory String?
   premiumProcessing String?
   
