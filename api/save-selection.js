@@ -1,72 +1,65 @@
 // api/save-selection.js
+import { PrismaClient } from '@prisma/client';
 
-import pkg from 'pg';
-const { Pool } = pkg;
+// Use pooled (Accelerate) URL if available, fallback to other envs
+const dbUrl =
+  process.env.PRISMA_DATABASE_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.DATABASE_URL;
 
-const pool = new Pool({
-  connectionString:
-    process.env.POSTGRES_URL ||
-    process.env.POSTGRES_PRISMA_URL ||
-    process.env.POSTGRES_URL_NON_POOLING ||
-    process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-});
+const prisma =
+  global.__prisma ||
+  new PrismaClient({
+    datasources: { db: { url: dbUrl } },
+  });
+if (!global.__prisma) global.__prisma = prisma;
 
-async function ensureTable() {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS "UserSelection" (
-      id SERIAL PRIMARY KEY,
-      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
-      "educationLevel" TEXT,
-      "wageLevel" TEXT,
-      "wageRange" TEXT,
-      "occupationCategory" TEXT,
-      "premiumProcessing" TEXT,
-      "ipAddress" TEXT
-    );
-  `);
-  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
+async function parseBody(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  const raw = Buffer.concat(chunks).toString() || '{}';
+  try {
+    return JSON.parse(raw);
+  } catch (_) {
+    return {};
+  }
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' });
-    return;
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const {
-    educationLevel,
-    wageLevel,
-    wageRange,
-    occupationCategory,
-    premiumProcessing,
-  } = req.body || {};
-
+  const body = await parseBody(req);
   const ipAddress =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ??
     req.socket?.remoteAddress ??
     null;
 
   try {
-    await ensureTable();
-
-    const result = await pool.query(
-      `
-      INSERT INTO "UserSelection"
-        ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress")
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-      `,
-      [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress]
-    );
-
-    res.status(200).json({ success: true, data: result.rows[0] });
-  } catch (err) {
-    console.error('Error in /api/save-selection:', err);
-    res.status(500).json({
-      error: 'Failed to save selection',
-      message: err.message,
-      code: err.code ?? null,
+    const saved = await prisma.userSelection.create({
+      data: {
+        educationLevel: body.educationLevel ?? body.education ?? null,
+        wageLevel: body.wageLevel ?? body.wage ?? null,
+        wageRange: body.wageRange ?? null,
+        occupationCategory: body.occupationCategory ?? body.occupation ?? null,
+        premiumProcessing: body.premiumProcessing ?? body.premium ?? null,
+        premiumCoins: body.premiumCoins ?? body.coins ?? null,
+        winChance: body.winChance ?? null,
+        resultCode: body.resultCode ?? body.result ?? null,
+        resultTitle: body.resultTitle ?? null,
+        resultMessage: body.resultMessage ?? null,
+        ipAddress,
+        userAgent: req.headers['user-agent'] || null,
+      },
     });
+
+    return res.status(200).json({ ok: true, data: saved });
+  } catch (err) {
+    console.error('DB insert error:', err);
+    return res.status(500).json({ error: 'DB error', detail: err.message, code: err.code ?? null });
   }
 }

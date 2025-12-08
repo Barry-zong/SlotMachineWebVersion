@@ -149,6 +149,7 @@
         const overlay = document.getElementById('winOverlay');
         const approvedStamp = document.getElementById('approvedStamp');
         let eduToast;
+        let lastSpinTs = null;
 
         function ensureEduToast() {
           if (eduToast) return eduToast;
@@ -180,23 +181,66 @@
         }
         try { localStorage.removeItem('spinLocked'); } catch (_) {}
 
+        function getPlayerInfo() {
+          try {
+            return JSON.parse(localStorage.getItem('playerInfo') || '{}') || {};
+          } catch (_) {
+            return {};
+          }
+        }
+
+        function getPremiumCoins() {
+          try {
+            const raw = parseInt(localStorage.getItem('premiumCoins') || '0', 10);
+            return Number.isFinite(raw) ? Math.max(0, raw) : 0;
+          } catch (_) {
+            return 0;
+          }
+        }
+
+        async function pushResultToServer({ result, playerInfo, coins, winChance }) {
+          // Avoid duplicate sends for same spin
+          const syncKey = 'lastSpinSyncedTs';
+          const syncedTs = localStorage.getItem(syncKey);
+          if (result?.ts && syncedTs && syncedTs === String(result.ts)) return;
+
+          try {
+            await fetch('/api/save-selection', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                educationLevel: playerInfo.educationLevel,
+                wageLevel: playerInfo.wageLevel,
+                wageRange: playerInfo.wageRange,
+                occupationCategory: playerInfo.occupationCategory,
+                premiumProcessing: playerInfo.premiumProcessing,
+                premiumCoins: coins,
+                winChance,
+                resultCode: result.code,
+                resultTitle: result.full,
+                resultMessage: result.message,
+              }),
+            });
+            if (result?.ts) localStorage.setItem(syncKey, String(result.ts));
+          } catch (err) {
+            console.error('Failed to sync result', err);
+          }
+        }
+
         try {
           const raw = localStorage.getItem('lastSpin');
           if (!raw) throw new Error('no data');
           const data = JSON.parse(raw);
+          lastSpinTs = data.ts || null;
           elCode.textContent = data.code || '---';
           elFull.textContent = data.full || 'Unavailable';
           elMessage.textContent = data.message || 'Please spin again.';
 
           const rawChance = parseFloat(localStorage.getItem('spinWinChance') || '0');
           const chanceText = Number.isFinite(rawChance) ? `${(rawChance * 100).toFixed(1)}%` : '0%';
-          const playerInfo = (() => {
-            try {
-              return JSON.parse(localStorage.getItem('playerInfo') || '{}') || {};
-            } catch (_) {
-              return {};
-            }
-          })();
+          const playerInfo = getPlayerInfo();
+          const coins = getPremiumCoins();
+          pushResultToServer({ result: data, playerInfo, coins, winChance: rawChance });
           const highEdu = ["Master's", "PhD", "Above PhD"];
           const hasHighEdu = highEdu.includes((playerInfo.educationLevel || '').trim());
 

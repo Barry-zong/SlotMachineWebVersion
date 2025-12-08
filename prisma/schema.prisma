@@ -17,8 +17,14 @@ model UserSelection {
   // Fields from the registration form
   educationLevel    String?
   wageLevel         String?
+  wageRange         String?
   occupationCategory String?
   premiumProcessing String?
+  premiumCoins      Int?
+  winChance         String?
+  resultCode        String?
+  resultTitle       String?
+  resultMessage     String?
   
   // Optional: Extra metadata
   ipAddress         String?
