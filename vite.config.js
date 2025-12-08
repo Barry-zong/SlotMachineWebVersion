@@ -12,6 +12,7 @@ export default defineConfig({
         confirm: resolve(__dirname, 'confirm.html'),
         spin: resolve(__dirname, 'spin.html'),
         result: resolve(__dirname, 'result.html'),
+        allResult: resolve(__dirname, 'allResult.html'),
       },
     },
   },
