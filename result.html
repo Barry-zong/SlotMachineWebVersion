@@ -239,6 +239,7 @@
           }
 
           // 将最终的完整数据提交到后端
+          // 数据提交操作已移至 goSummary 函数，在用户确认后执行
           submitFullResult();
         } catch (e) {
           elCode.textContent = '---';
@@ -259,12 +260,28 @@
           elCountdown.textContent = `Tap anywhere to see summary, ${seconds}s…`;
         };
         updateCountdown();
+
+        let submissionDone = false;
+        async function goSummary() {
+          // 防止重复提交和导航
+          if (submissionDone) return;
+          submissionDone = true;
+
+          // 停止计时器
+          clearInterval(timer);
+
+          // 提交完整数据，然后导航到总结页面
+          await submitFullResult();
+          window.location.href = './summary.html';
+        }
+
         const timer = setInterval(() => {
           seconds -= 1;
           updateCountdown();
           if (seconds <= 0) {
             clearInterval(timer);
             window.location.href = './summary.html';
+            goSummary();
           }
         }, 1000);
 
