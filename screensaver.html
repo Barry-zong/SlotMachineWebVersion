@@ -125,7 +125,7 @@
       }
 
       // 点击或触摸进入登记页（不响应键盘事件）
-      const goRegister = () => { navigateTo('register.html'); };
+      const goRegister = () => { navigateTo('disclaimer.html'); };
       ['pointerdown', 'touchstart', 'mousedown'].forEach(evt => {
         window.addEventListener(evt, goRegister, { once: true });
       });

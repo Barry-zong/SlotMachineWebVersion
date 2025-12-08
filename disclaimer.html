@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Important Notice - Lucky Slot</title>
+  <link rel="stylesheet" href="./src/crt.css" />
+  <link rel="stylesheet" href="./src/safe-area.css" />
+  <style>
+    :root {
+      --blue: #0b64d8;
+      --panel: #ffffff;
+      --text: #0f1426;
+      --muted: #5c6a99;
+      --accent: #2f00ff;
+      --accent2: #0206d1;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%);
+      font-family: "Segoe UI", "PingFang SC", "Hiragino San GB", sans-serif;
+      position: relative;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url("./images/starsBackground.png") left center/ clamp(280px, 120vmin, 1520px) no-repeat;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      min-height: 100vh;
+      min-height: 100svh;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 4vh 2vw;
+      box-sizing: border-box;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      width: clamp(320px, 60vw, 720px);
+      margin-left: auto;
+      margin-right: auto;
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .25);
+      padding: clamp(28px, 5vw, 48px);
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .headline {
+      margin: 0 0 16px;
+      font-size: clamp(28px, 6vw, 40px);
+      font-weight: 800;
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      color: #334275;
+      font-size: clamp(16px, 3vw, 20px);
+      line-height: 1.6;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .primary {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 28px;
+      font-weight: 800;
+      cursor: pointer;
+      background: linear-gradient(160deg, var(--accent), var(--accent2));
+      color: #ffffff;
+      font-size: clamp(18px, 3.5vw, 22px);
+      box-shadow: 0 12px 30px rgba(47, 0, 255, 0.35);
+    }
+
+    .subtext {
+      margin-top: 12px;
+      font-size: clamp(12px, 2vw, 14px);
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body class="crt">
+  <div class="wrap">
+    <div class="card">
+      <h1 class="headline">Important Notice</h1>
+      <p class="lead">This H1B Lottery project is a process demonstration based on publicly available information and is intended to illustrate structural aspects of selection mechanisms. All presented outcomes do not represent any actual conclusions, predictions, or assessments.</p>
+      <button id="confirm" class="primary" type="button" onclick="window.location.href='./register.html'">Start Now</button>
+      <p class="subtext">By proceeding, you agree that your interaction data may be recorded. All data will be used solely for analysis and educational purposes, and will not be associated with identity or evaluation of results.</p>
+    </div>
+  </div>
+</body>
+
+</html>

@@ -15,6 +15,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         screensaver: resolve(__dirname, 'screensaver.html'),
+        disclaimer: resolve(__dirname, 'disclaimer.html'),
         register: resolve(__dirname, 'register.html'),
         coins: resolve(__dirname, 'coins.html'),
         confirm: resolve(__dirname, 'confirm.html'),
