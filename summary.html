@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Summary - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+    <style>
+      :root { --blue:#0b64d8; --panel:#ffffff; --text:#0f1426; }
+      html, body { min-height: 100%; margin: 0; font-family: Segoe UI, system-ui, -apple-system, Roboto, sans-serif; }
+      body {
+        background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%);
+        color: var(--text);
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4vh 2vw;
+        box-sizing: border-box;
+      }
+      .card {
+        width: clamp(320px, 90vw, 900px);
+        background: var(--panel);
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(0,0,0,.25);
+        padding: clamp(20px, 4vw, 32px);
+      }
+      .title {
+        margin: 0 0 4px;
+        font-size: clamp(26px, 4vw, 32px);
+        font-weight: 800;
+        text-align: center;
+      }
+      .subtitle {
+        text-align: center;
+        margin: 0 0 18px;
+        color: #4a5784;
+        font-weight: 600;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+      .item {
+        padding: 12px 14px;
+        border: 1px solid #e6e8f0;
+        border-radius: 12px;
+        background: #f9fbff;
+      }
+      .label {
+        font-size: 0.85rem;
+        color: #6b7397;
+        margin: 0 0 6px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .value {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #15204a;
+      }
+      .actions {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .btn {
+        border: none;
+        border-radius: 10px;
+        padding: 10px 16px;
+        background: #0b64d8;
+        color: #fff;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 12px 30px rgba(11,100,216,0.25);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .btn:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(11,100,216,0.35); }
+      .btn.secondary { background: #eef2ff; color: #1d2a5c; box-shadow: none; border: 1px solid #dfe4ff; }
+      .empty {
+        text-align: center;
+        padding: 16px;
+        color: #5b668c;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        font-size: 0.95rem;
+      }
+      th, td {
+        border-bottom: 1px solid #e6e8f0;
+        padding: 10px 12px;
+        text-align: left;
+      }
+      th {
+        background: #f7f8ff;
+        color: #334275;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      tr:last-child td { border-bottom: none; }
+      .table-wrap { overflow-x: auto; margin-top: 12px; }
+    </style>
+  </head>
+  <body class="crt crt-effect">
+    <div class="wrap">
+      <div class="card">
+        <h1 class="title">Your Lottery Summary</h1>
+        <p class="subtitle">All recorded selections (latest first)</p>
+        <div class="table-wrap">
+          <table id="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Created At</th>
+                <th>Education</th>
+                <th>Wage</th>
+                <th>Occupation</th>
+                <th>Premium</th>
+                <th>Coins</th>
+                <th>Win Chance</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="tbody">
+              <tr><td colspan="9" class="empty">Loading data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p id="empty" class="empty" style="display:none;">No data available. Try spinning again.</p>
+        <div class="actions">
+          <button class="btn" id="home">Back to Screensaver</button>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function(){
+        const tbody = document.getElementById('tbody');
+        const empty = document.getElementById('empty');
+
+        async function loadData() {
+          try {
+            const resp = await fetch('/api/selections', { cache: 'no-store' });
+            if (!resp.ok) throw new Error(`Unexpected server response: ${resp.status}`);
+            const data = await resp.json();
+            if (!Array.isArray(data) || data.length === 0) {
+              empty.style.display = 'block';
+              tbody.innerHTML = `<tr><td colspan="9" class="empty">No data recorded yet.</td></tr>`;
+              return;
+            }
+            empty.style.display = 'none';
+            tbody.innerHTML = data.map(item => `
+              <tr>
+                <td>${item.id ?? '-'}</td>
+                <td>${item.createdAt ? new Date(item.createdAt).toLocaleString() : '-'}</td>
+                <td>${item.educationLevel || '-'}</td>
+                <td>${item.wageLevel || '-'}</td>
+                <td>${item.occupationCategory || '-'}</td>
+                <td>${item.premiumProcessing || '-'}</td>
+                <td>${item.premiumCoins ?? item.coins ?? '-'}</td>
+                <td>${item.winChance ?? '-'}</td>
+                <td>${(item.resultCode ?? item.result) || '-'}</td>
+              </tr>
+            `).join('');
+          } catch (err) {
+            console.error(err);
+            tbody.innerHTML = `<tr><td colspan="9" class="empty" style="color:red;">Error loading data. ${err.message}</td></tr>`;
+          }
+        }
+
+        loadData();
+
+        document.getElementById('home')?.addEventListener('click', () => {
+          window.location.href = './screensaver.html';
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -233,19 +233,19 @@
           updateCountdown();
           if (seconds <= 0) {
             clearInterval(timer);
-            window.location.href = './screensaver.html';
+            window.location.href = './summary.html';
           }
         }, 1000);
 
-        function goHome() {
-          window.location.href = './screensaver.html';
+        function goSummary() {
+          window.location.href = './summary.html';
         }
-        document.body.addEventListener('click', goHome);
+        document.body.addEventListener('click', goSummary);
         const card = document.querySelector('.card');
         if (card) {
           card.addEventListener('click', (e) => {
             e.stopPropagation();
-            goHome();
+            goSummary();
           });
         }
       })();

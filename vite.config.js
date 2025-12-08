@@ -22,6 +22,7 @@ export default defineConfig({
         spin: resolve(__dirname, 'spin.html'),
         result: resolve(__dirname, 'result.html'),
         allResult: resolve(__dirname, 'allResult.html'),
+        summary: resolve(__dirname, 'summary.html'),
       },
     },
   },
