@@ -1,3 +1,4 @@
+// api/selections.js
 import { sql } from '@vercel/postgres'
 
 let tableEnsured = false
@@ -19,13 +20,20 @@ async function ensureTable() {
   tableEnsured = true
 }
 
-export default async function handler(_req, res) {
+export default async function handler(req, res) {
   try {
     await ensureTable()
-    const { rows } = await sql`SELECT * FROM "UserSelection" ORDER BY "createdAt" DESC`
+    const { rows } =
+      await sql`SELECT * FROM "UserSelection" ORDER BY "createdAt" DESC`
     return res.status(200).json(rows)
   } catch (err) {
     console.error('Error fetching selections:', err)
-    return res.status(500).json({ error: 'Failed to fetch selections' })
+
+    // ⚠️ 仅用于调试：把错误信息也返回给前端，方便查看
+    return res.status(500).json({
+      error: 'Failed to fetch selections',
+      message: err?.message || String(err),
+      code: err?.code || null,
+    })
   }
 }
