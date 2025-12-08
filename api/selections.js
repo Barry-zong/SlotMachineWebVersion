@@ -1,26 +1,47 @@
 // api/selections.js
-import { PrismaClient } from '@prisma/client';
 
-const dbUrl =
-  process.env.PRISMA_DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.POSTGRES_URL_NON_POOLING ||
-  process.env.DATABASE_URL;
+import pkg from 'pg';
+const { Pool } = pkg;
 
-const prisma =
-  global.__prisma ||
-  new PrismaClient({
-    datasources: { db: { url: dbUrl } },
-  });
-if (!global.__prisma) global.__prisma = prisma;
+// 用 Prisma 提供的 POSTGRES_URL 直接连 db.prisma.io
+const pool = new Pool({
+  connectionString:
+    process.env.POSTGRES_URL ||
+    process.env.POSTGRES_PRISMA_URL ||
+    process.env.POSTGRES_URL_NON_POOLING ||
+    process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }, // 连接 cloud postgres 常用
+});
+
+// 确保建表
+async function ensureTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "UserSelection" (
+      id SERIAL PRIMARY KEY,
+      "createdAt" TIMESTAMPTZ DEFAULT NOW(),
+      "educationLevel" TEXT,
+      "wageLevel" TEXT,
+      "wageRange" TEXT,
+      "occupationCategory" TEXT,
+      "premiumProcessing" TEXT,
+      "ipAddress" TEXT
+    );
+  `);
+  await pool.query(`ALTER TABLE "UserSelection" ADD COLUMN IF NOT EXISTS "wageRange" TEXT;`);
+}
 
 export default async function handler(req, res) {
   try {
-    const rows = await prisma.userSelection.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
-    res.status(200).json(rows);
+    await ensureTable();
+
+    const result = await pool.query(`
+      SELECT "id", "createdAt", "educationLevel", "wageLevel", "wageRange",
+             "occupationCategory", "premiumProcessing", "ipAddress"
+      FROM "UserSelection"
+      ORDER BY "createdAt" DESC;
+    `);
+
+    res.status(200).json(result.rows);
   } catch (err) {
     console.error('Error in /api/selections:', err);
     res.status(500).json({
