@@ -49,6 +49,9 @@ export default async function handler(req, res) {
     result,
   } = req.body || {};
 
+  // 调试: 在服务器日志中打印接收到的数据
+  console.log('Received payload at /api/save-selection:', req.body);
+
   const ipAddress =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ??
     req.socket?.remoteAddress ??
@@ -57,7 +60,7 @@ export default async function handler(req, res) {
   try {
     await ensureTable();
 
-    const result = await pool.query(
+    const dbResult = await pool.query(
       `
       INSERT INTO "UserSelection"
         ("educationLevel", "wageLevel", "wageRange", "occupationCategory", "premiumProcessing", "ipAddress", "coin", "winChance", "result")
@@ -67,7 +70,7 @@ export default async function handler(req, res) {
       [educationLevel, wageLevel, wageRange, occupationCategory, premiumProcessing, ipAddress, coin, winChance, result]
     );
 
-    res.status(200).json({ success: true, data: result.rows[0] });
+    res.status(200).json({ success: true, data: dbResult.rows[0] });
   } catch (err) {
     console.error('Error in /api/save-selection:', err);
     res.status(500).json({
