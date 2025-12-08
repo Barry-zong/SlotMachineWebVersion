@@ -23,8 +23,11 @@
     </div>
     <script>
       // Reuse endpoints; avoid import.meta in classic scripts (causes SyntaxError)
-      const PI_WS_URL = window.PI_WS_URL || `ws://${location.hostname}:5000/ws`;
-      const PI_HTTP_BASE = window.PI_HTTP_BASE || `http://${location.hostname}:5000`;
+      const isHttps = window.location.protocol === 'https:';
+      const wsProtocol = isHttps ? 'wss' : 'ws';
+      // Prefer same-origin to avoid mixed-content; allow override via window.PI_HTTP_BASE
+      const PI_HTTP_BASE = window.PI_HTTP_BASE || `${isHttps ? 'https' : 'http'}://${location.hostname}${location.port ? ':' + location.port : ''}`;
+      const PI_WS_URL = window.PI_WS_URL || `${wsProtocol}://${location.hostname}${location.port ? ':' + location.port : ''}/ws`;
 
       const elCoins = document.getElementById('coins');
       const elStatus = document.getElementById('status');
