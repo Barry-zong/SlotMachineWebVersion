@@ -197,6 +197,9 @@
               result: lastSpin.code || null,
             };
 
+            // Debug: 在控制台打印将要提交的数据
+            console.log('Submitting final payload to /api/save-selection:', finalPayload);
+
             // 3. 将完整数据发送到服务器
             await fetch('/api/save-selection', {
               method: 'POST',
@@ -238,7 +241,6 @@
             hideEduToast();
           }
 
-          // 将最终的完整数据提交到后端
           // 数据提交操作已移至 goSummary 函数，在用户确认后执行
           submitFullResult();
         } catch (e) {
@@ -279,15 +281,10 @@
           seconds -= 1;
           updateCountdown();
           if (seconds <= 0) {
-            clearInterval(timer);
-            window.location.href = './summary.html';
             goSummary();
           }
         }, 1000);
 
-        function goSummary() {
-          window.location.href = './summary.html';
-        }
         document.body.addEventListener('click', goSummary);
         const card = document.querySelector('.card');
         if (card) {
