@@ -1,10 +1,26 @@
-import { sql } from '@vercel/postgres'
+import { createClient } from '@vercel/postgres'
 
 let tableEnsured = false
+let _client
+
+async function getClient() {
+  if (!_client) {
+    const connectionString =
+      process.env.POSTGRES_URL ??
+      process.env.POSTGRES_PRISMA_URL ??
+      process.env.POSTGRES_URL_NON_POOLING ??
+      process.env.DATABASE_URL
+
+    _client = createClient({ connectionString })
+    await _client.connect()
+  }
+  return _client
+}
 
 async function ensureTable() {
   if (tableEnsured) return
-  await sql`
+  const client = await getClient()
+  await client.sql`
     CREATE TABLE IF NOT EXISTS "UserSelection" (
       "id" SERIAL PRIMARY KEY,
       "createdAt" TIMESTAMP DEFAULT NOW(),
@@ -36,7 +52,8 @@ export default async function handler(req, res) {
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress || null
     const userAgent = req.headers['user-agent'] || null
 
-    const { rows } = await sql`
+    const client = await getClient()
+    const { rows } = await client.sql`
       INSERT INTO "UserSelection" ("educationLevel", "wageLevel", "occupationCategory", "premiumProcessing", "ipAddress", "userAgent")
       VALUES (${educationLevel}, ${wageLevel}, ${occupationCategory}, ${premiumProcessing}, ${ipAddress}, ${userAgent})
       RETURNING *
@@ -45,6 +62,10 @@ export default async function handler(req, res) {
     return res.status(201).json(rows[0])
   } catch (err) {
     console.error('Error saving selection:', err)
-    return res.status(500).json({ error: 'Failed to save selection' })
+    return res.status(500).json({
+      error: 'Failed to save selection',
+      message: err?.message || String(err),
+      code: err?.code || null,
+    })
   }
 }
