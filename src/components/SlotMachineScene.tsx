@@ -202,7 +202,7 @@ const SlotMachineScene: React.FC = () => {
   };
 
   return (
-    <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 2, 8], fov: 45 }}>
+     <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 2, 8], fov: 45 }}>
       {/* Environment Configuration */}
       <color attach="background" args={['#ffffff']} />
       
@@ -210,12 +210,13 @@ const SlotMachineScene: React.FC = () => {
       <ambientLight intensity={0.4} />
       <spotLight
         position={[0, 15, 5]}
-        angle={0.25}
+        angle={0.35}
         penumbra={0.8} // Soft edges
         intensity={1.5}
         color="#f0f9ff" // Cool white
         castShadow
         shadow-bias={-0.0001}
+       
       />
       {/* Fill light for the front to avoid pitch black shadows */}
       <pointLight position={[0, 2, 10]} intensity={0.3} color="#ffffff" />
@@ -230,6 +231,7 @@ const SlotMachineScene: React.FC = () => {
       </group>
 
       <Floor />
+      
 
       {/* Camera Controls (Optional, for debugging or adjusting view) */}
       {/* <OrbitControls makeDefault enablePan={false} minPolarAngle={0} maxPolarAngle={Math.PI / 2} /> */}

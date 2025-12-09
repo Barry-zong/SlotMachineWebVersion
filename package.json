@@ -13,27 +13,25 @@
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@prisma/extension-accelerate": "^3.0.1",
+    "@react-spring/three": "^10.0.3",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
     "@vercel/postgres": "^0.8.0",
     "dotenv": "^17.2.3",
     "express": "^4.19.2",
     "pg": "^8.16.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "@react-three/fiber": "^9.4.0",
-    "three": "^0.181.2",
-    "@react-three/drei": "^10.7.7",
-    "@react-spring/three": "^10.0.3"
+    "three": "^0.181.2"
   },
   "devDependencies": {
+    "@types/node": "^22.19.2",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.1.2",
     "prisma": "^7.1.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.7"
   },
   "postinstall": "prisma generate"
-
-  
 }
