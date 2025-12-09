@@ -40,16 +40,7 @@ app.post("/api/register", async (req, res) => {
 // API endpoint to save user selections
 app.post("/api/save-selection", async (req, res) => {
   try {
-    const {
-      educationLevel,
-      wageLevel,
-      wageRange,
-      occupationCategory,
-      premiumProcessing,
-      coin,
-      winChance,
-      result,
-    } = req.body;
+    const { educationLevel, wageLevel, occupationCategory, premiumProcessing } = req.body;
     
     // Optional: capture basic metadata if available
     const ipAddress = req.ip || req.connection.remoteAddress;
@@ -59,14 +50,10 @@ app.post("/api/save-selection", async (req, res) => {
       data: {
         educationLevel,
         wageLevel,
-        wageRange,
         occupationCategory,
         premiumProcessing,
         ipAddress,
-        userAgent,
-        coin,
-        winChance,
-        result,
+        userAgent
       }
     });
 
@@ -83,20 +70,6 @@ app.get("/api/selections", async (_req, res) => {
   try {
     const selections = await prisma.userSelection.findMany({
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        createdAt: true,
-        educationLevel: true,
-        wageLevel: true,
-        wageRange: true,
-        occupationCategory: true,
-        premiumProcessing: true,
-        ipAddress: true,
-        userAgent: true,
-        coin: true,
-        winChance: true,
-        result: true,
-      },
     });
     res.json(selections);
   } catch (err) {
