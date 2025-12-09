@@ -14,17 +14,14 @@ model UserSelection {
   id                Int      @id @default(autoincrement())
   createdAt         DateTime @default(now())
   
-  // Fields from the registration form
   educationLevel    String?
   wageLevel         String?
   occupationCategory String?
   premiumProcessing String?
   
-  // Optional: Extra metadata
   ipAddress         String?
   userAgent         String?
 
-  // Fields from the game result
   coin              Int?
   winChance         Float?
   result            String?
