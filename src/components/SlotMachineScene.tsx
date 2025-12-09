@@ -235,7 +235,7 @@ const SlotMachineScene: React.FC = () => {
       {/* <OrbitControls makeDefault enablePan={false} minPolarAngle={0} maxPolarAngle={Math.PI / 2} /> */}
       
       {/* Effects */}
-      <Environment preset="city" visible={false} /> {/* Just for reflections */}
+      <Environment preset="city" /> {/* Just for reflections */}
     </Canvas>
   );
 };

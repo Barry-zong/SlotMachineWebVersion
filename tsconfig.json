@@ -5,17 +5,30 @@
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "allowJs": false,
     "skipLibCheck": true,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
+
+    // ⭐ 关键：React + TSX 支持
+    "jsx": "react-jsx",
+
+    // ⭐ 统一成左边项目的 Node 环境 + bundler 模式
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
+    "moduleDetection": "auto",
+
     "resolveJsonModule": true,
     "isolatedModules": true,
+
+    // ⭐ 保持兼容多 HTML 页打包
     "noEmit": true,
-    "jsx": "react-jsx"
+
+    // 如果你需要 alias，可以保留
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["src", "components"],
+
+  "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
