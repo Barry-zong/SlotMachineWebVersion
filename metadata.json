@@ -1,0 +1,5 @@
+{
+  "name": "Minimalist 3D Slot Machine",
+  "description": "A 3D minimal slot machine with 8-sided cylinder reels and a lever mechanism using React Three Fiber.",
+  "requestFramePermissions": []
+}

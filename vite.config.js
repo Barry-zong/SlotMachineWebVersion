@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  plugins: [react()],
   server: {
     proxy: {
       '/api': {
@@ -23,6 +25,7 @@ export default defineConfig({
         result: resolve(__dirname, 'result.html'),
         allResult: resolve(__dirname, 'allResult.html'),
         summary: resolve(__dirname, 'summary.html'),
+        slot3d: resolve(__dirname, 'slot3d.html'),
       },
     },
   },
