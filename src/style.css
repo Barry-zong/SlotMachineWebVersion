@@ -67,7 +67,7 @@ h1 {
 
 .slot-machine {
   display: grid;
-  grid-template-columns: repeat(3, minmax(160px, 1fr));
+  grid-template-columns: repeat(3, minmax(160px, 1fr)) minmax(110px, 140px);
   justify-items: center;
   align-items: center;
   gap: 1.5rem;
@@ -177,6 +177,24 @@ h1 {
     0 0 20px rgba(120, 179, 255, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+.lever-column {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.lever-root {
+  width: clamp(100px, 12vw, 140px);
+  height: clamp(220px, 30vh, 280px);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+  overflow: hidden;
 }
 
 .reel.has-glow .glyph {

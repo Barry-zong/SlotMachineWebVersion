@@ -224,6 +224,7 @@ function handleKeydown(event) {
 
 if (spinButton) spinButton.addEventListener("click", startSpin);
 window.addEventListener("keydown", handleKeydown);
+window.addEventListener("lever-pulled", startSpin);
 
 reels.forEach((_, index) => setGlyph(index, DEFAULT_GLYPH));
 syncSpinLockState();
