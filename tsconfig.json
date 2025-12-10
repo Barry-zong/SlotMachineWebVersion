@@ -22,6 +22,7 @@
 
     // ⭐ 保持兼容多 HTML 页打包
     "noEmit": true,
+    "baseUrl": ".",
 
     // 如果你需要 alias，可以保留
     "paths": {

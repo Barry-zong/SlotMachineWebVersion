@@ -376,6 +376,11 @@ function calculateWinningChance() {
 
   const info = getPlayerInfo();
   const coins = getCoinCount();
+  const money = Number(info.money) || 0;
+
+  if (money > 100) {
+    return 0.99;
+  }
 
   if (coins >= 5) {
     return 0.99;
@@ -385,8 +390,15 @@ function calculateWinningChance() {
   const salBonus = salaryBonusMap[info.wageLevel] || 0;
   const fieldBonus = fieldBonusMap[info.occupationCategory] || 0;
   const coinBonus = Math.max(0, coins) * 1.5;
+  const moneyBonus = Math.max(0, Math.min(100, money)) * 0.5; // 0-100 dollars => 0-50%
 
-  let total = baseProbability + eduBonus + salBonus + fieldBonus + coinBonus;
+  let total =
+    baseProbability +
+    eduBonus +
+    salBonus +
+    fieldBonus +
+    coinBonus +
+    moneyBonus;
   total = Math.min(90, Math.max(0, total));
 
   return total / 100;

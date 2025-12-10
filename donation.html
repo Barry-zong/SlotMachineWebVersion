@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Donation - Lucky Slot</title>
+    <link rel="stylesheet" href="./src/crt.css" />
+    <link rel="stylesheet" href="./src/safe-area.css" />
+    <style>
+      :root { --blue:#0b64d8; --panel:#ffffff; --text:#0f1426; }
+      html, body { height: 100%; margin: 0; overflow: hidden; font-family: Segoe UI, system-ui, -apple-system, Roboto, sans-serif; }
+      body { background: radial-gradient(circle at 50% -20%, #002fcb 0%, #70b3ff 60%, #004e83 100%); }
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: url("./images/donationBackground.png") center/cover no-repeat;
+        opacity: 0.55;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .wrap {
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4vh 2vw;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 1;
+      }
+      .card { width: clamp(0px, 60vw, 720px); max-width: 720px; margin-left: auto; margin-right: auto; background: var(--panel); color: var(--text); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,.25); padding: clamp(18px, 4vw, 32px); text-align: center; position: relative; }
+      .title { margin: 0 0 16px; font-size: clamp(26px, 5.5vw, 36px); font-weight: 800; }
+      .input-group {
+        display: flex;
+        margin-bottom: 16px;
+      }
+      .input-group input {
+        flex-grow: 1;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 8px 0 0 8px;
+        font-size: 1rem;
+      }
+      .input-group button {
+        padding: 12px 20px;
+        border: 1px solid var(--blue);
+        background-color: var(--blue);
+        color: white;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.2s;
+      }
+      .input-group button:hover {
+        background-color: #0a58ca;
+      }
+      .input-group .confirm-btn {
+        border-radius: 12px;
+        padding: 18px 75px;
+        flex: 0 0 auto;
+        font-size: 1.2rem;
+      }
+      .confirm-btn {
+        border-radius: 12px;
+        padding: 12px 32px;
+        border: 1px solid var(--blue);
+        background-color: var(--blue);
+        color: #fff;
+      }
+      .pay-btn {
+        display: inline-block;
+        margin: 8px 0 20px;
+        padding: 12px 92px;
+        border-radius: 10px;
+        border: 1px solid var(--blue);
+        background: linear-gradient(120deg, #f0bc00, #ecd800);
+        color: #fff9de;
+        font-weight: 700;
+        font-size: 1.5rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 12px 30px rgba(216, 182, 11, 0.495);
+      }
+      .pay-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 34px rgba(11, 100, 216, 0.32);
+      }
+      .pay-btn:active {
+        transform: translateY(1px);
+        opacity: 0.9;
+      }
+      .nav-btn {
+        display: inline-block;
+        margin-top: 16px;
+        padding: 12px 18px;
+        border-radius: 10px;
+        border: 1px solid #0f172a;
+        background: #0f172a;
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 0.98rem;
+        text-decoration: none;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.26);
+      }
+      .nav-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      }
+      .nav-btn:active {
+        transform: translateY(1px);
+        opacity: 0.9;
+      }
+    </style>
+</head>
+<body class="crt crt-bulge crt-effect">
+    <div class="wrap">
+        <div class="card">
+            <h1 class="title">Premium Processing Payment</h1>
+            <a class="pay-btn" href="https://donate.nilc.org/page/88062/donate/1" target="_blank" rel="noopener noreferrer">Pay</a>
+            <div id="donation-root"></div>
+           
+            <!-- <a class="nav-btn" href="./confirm.html">Let's go</a> -->
+        </div>
+    </div>
+    <script type="module" src="/src/donation.tsx"></script>
+ 
+</body>
+</html>

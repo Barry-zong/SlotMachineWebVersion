@@ -26,6 +26,8 @@ model UserSelection {
 
   // Fields from the game result
   coin              Int?
+  nickname          String? 
+  money             Int?
   winChance         Float?
   result            String?
 }

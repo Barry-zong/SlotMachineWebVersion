@@ -132,7 +132,7 @@
     <div class="wrap">
       <div class="card">
         <div class="approved-stamp" id="approvedStamp" aria-hidden="true"></div>
-        <h1 class="title">Lottery Result</h1>
+        <h1 class="title" id="page-title">Lottery Result</h1>
         <!-- <p class="eyebrow">Status</p> -->
         <div id="result-code" class="result-code">---</div>
         <p class="full-term" id="full-term">Awaiting spin</p>
@@ -148,6 +148,7 @@
         const elCountdown = document.getElementById('countdown');
         const overlay = document.getElementById('winOverlay');
         const approvedStamp = document.getElementById('approvedStamp');
+        const pageTitle = document.getElementById('page-title');
         let eduToast;
 
         function ensureEduToast() {
@@ -215,12 +216,6 @@
           const raw = localStorage.getItem('lastSpin');
           if (!raw) throw new Error('no data');
           const data = JSON.parse(raw);
-          elCode.textContent = data.code || '---';
-          elFull.textContent = data.full || 'Unavailable';
-          elMessage.textContent = data.message || 'Please spin again.';
-
-          const rawChance = parseFloat(localStorage.getItem('spinWinChance') || '0');
-          const chanceText = Number.isFinite(rawChance) ? `${(rawChance * 100).toFixed(1)}%` : '0%';
           const playerInfo = (() => {
             try {
               return JSON.parse(localStorage.getItem('playerInfo') || '{}') || {};
@@ -228,6 +223,17 @@
               return {};
             }
           })();
+          elCode.textContent = data.code || '---';
+          elFull.textContent = data.full || 'Unavailable';
+          elMessage.textContent = data.message || 'Please spin again.';
+
+          const nickname = (playerInfo.nickname || '').trim();
+          if (nickname && pageTitle) {
+            pageTitle.textContent = `${nickname}'s Lottery Result`;
+          }
+
+          const rawChance = parseFloat(localStorage.getItem('spinWinChance') || '0');
+          const chanceText = Number.isFinite(rawChance) ? `${(rawChance * 100).toFixed(1)}%` : '0%';
           const highEdu = ["Master's", "PhD", "Above PhD"];
           const hasHighEdu = highEdu.includes((playerInfo.educationLevel || '').trim());
 
