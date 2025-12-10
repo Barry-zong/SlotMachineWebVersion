@@ -125,6 +125,49 @@
         opacity: 1;
         transform: translate(-50%, 0);
       }
+      .ticker {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 10px 0;
+        background: rgba(11, 17, 30, 0.65);
+        overflow: hidden;
+        pointer-events: none;
+        display: none;
+      }
+      .ticker::before,
+      .ticker::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 80px;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .ticker::before {
+        left: 0;
+        background: linear-gradient(90deg, rgba(11, 17, 30, 0.65), transparent);
+      }
+      .ticker::after {
+        right: 0;
+        background: linear-gradient(-90deg, rgba(11, 17, 30, 0.65), transparent);
+      }
+      .ticker-track {
+        display: inline-block;
+        white-space: nowrap;
+        color: #f9fbff;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        font-size: clamp(14px, 2vw, 18px);
+        animation: ticker-move 18s linear infinite;
+        padding-left: 100%;
+      }
+      @keyframes ticker-move {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+      }
     </style>
   </head>
   <body class="crt crt-bulge crt-effect">
@@ -140,6 +183,9 @@
         <p class="countdown" id="countdown">Tap anywhere to see summary. 120s…</p>
       </div>
     </div>
+    <div class="ticker" id="resultTicker" aria-live="polite">
+      <div class="ticker-track" id="tickerTrack"></div>
+    </div>
     <script>
       (function(){
         const elCode = document.getElementById('result-code');
@@ -149,6 +195,8 @@
         const overlay = document.getElementById('winOverlay');
         const approvedStamp = document.getElementById('approvedStamp');
         const pageTitle = document.getElementById('page-title');
+        const ticker = document.getElementById('resultTicker');
+        const tickerTrack = document.getElementById('tickerTrack');
         let eduToast;
 
         function ensureEduToast() {
@@ -237,10 +285,16 @@
           const highEdu = ["Master's", "PhD", "Above PhD"];
           const hasHighEdu = highEdu.includes((playerInfo.educationLevel || '').trim());
 
-          if ((data.code || '').toUpperCase() !== 'H1B') {
+          const isH1B = (data.code || '').toUpperCase() === 'H1B';
+
+          if (!isH1B) {
             activateOverlay({ text: chanceText, mode: 'lose' });
             if (approvedStamp) approvedStamp.classList.remove('is-active');
             if (hasHighEdu) showEduToast();
+            if (ticker && tickerTrack) {
+              ticker.style.display = 'block';
+              tickerTrack.textContent = 'Shuai paid $300,000 and received an H-1B.   ';
+            }
           } else {
             activateOverlay({ mode: 'win' });
             if (approvedStamp) approvedStamp.classList.add('is-active');

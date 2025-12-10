@@ -11,10 +11,10 @@
   <body class="crt">
     <canvas id="matrix-rain"></canvas>
     <main class="app">
-      <!-- <h1>Jackpot of Dreams</h1> -->
+      <!-- <h2>Jackpot of Dreams</h2> -->
       <!-- <p id="coin-hint" class="hint">Insert a coin to start spinning.</p> -->
       
-
+      <h2 id="nickname-banner" class="hint" aria-live="polite" style="display:none;"></h2>
       <section class="slot-machine" role="group" aria-label="Slot machine">
         <div class="reel" data-reel="0">
           <span class="glyph" aria-hidden="true"></span>
@@ -31,5 +31,21 @@
     </main>
 
     <script type="module" src="./src/main.js"></script>
+    <script>
+      (function() {
+        const banner = document.getElementById('nickname-banner');
+        if (!banner) return;
+        try {
+          const info = JSON.parse(localStorage.getItem('playerInfo') || '{}') || {};
+          const nickname = (info.nickname || '').trim();
+          if (nickname) {
+            banner.textContent = `${nickname}'s H-1B Application`;
+            banner.style.display = 'block';
+          }
+        } catch (_) {
+          /* no-op */
+        }
+      })();
+    </script>
   </body>
 </html>

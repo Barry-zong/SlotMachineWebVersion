@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 const MoneyInput = ({ money, onChange }: { money: string; onChange: (val: string) => void }) => (
-    <div className="input-group">
+    <div className="input-group unit-input">
         <input 
             type="number" 
             value={money} 
             onChange={(e) => onChange(e.target.value)} 
             placeholder="Tell me, how much money did you donate?"
         />
+        <span className="unit-tag">million USD</span>
     </div>
 );
 
