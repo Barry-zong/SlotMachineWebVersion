@@ -1,25 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { ContactShadows, Environment, PerspectiveCamera, Shadow, Cylinder, Sphere } from '@react-three/drei';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
+import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
+import { useGLTF, Environment } from '@react-three/drei';
 import { useSpring, animated, config } from '@react-spring/three';
 import * as THREE from 'three';
 
 // --- Types & Constants ---
-const REEL_RADIUS = 1.2;
-const REEL_WIDTH = 1.0;
 const REEL_SEGMENTS = 8; // Octagon as requested
-const REEL_GAP = 0.2;
 const SPIN_DURATION = 2000; // ms
 
 interface LeverProps {
-  onPull: () => void;
   isPulling: boolean;
+  // 我们将把加载的模型节点传递给拉杆
+  nodes: { [name: string]: THREE.Object3D };
 }
 
 interface ReelProps {
   index: number;
   spinning: boolean;
   stopDelay: number;
+  // 我们将把所有加载的节点传递过来
+  nodes: { [name: string]: THREE.Object3D };
 }
 
 // --- Components ---
@@ -28,66 +28,36 @@ interface ReelProps {
  * The Lever mechanism on the right side.
  * Consists of a base, a shaft, and a handle (sphere).
  */
-const Lever: React.FC<LeverProps> = ({ onPull, isPulling }) => {
-  const [hovered, setHover] = useState(false);
+const Lever: React.FC<LeverProps> = ({ isPulling, nodes }) => {
+  // const [hovered, setHover] = useState(false); // 如果需要，可以重新添加悬停效果
 
   // Spring animation for the lever arm rotation
   const { rotation } = useSpring({
-    rotation: isPulling ? [Math.PI / 4, 0, 0] : [-Math.PI / 6, 0, 0],
+    //rotation: isPulling ? [Math.PI / 4, 0, 0] : [-Math.PI / 6, 0, 0],
+    // 例如，如果想让它向相反方向拉动，可以改为：
+    rotation: isPulling ? [-Math.PI / 4, 0, 0] : [Math.PI / 16, 0, 0],
     config: { mass: 1, tension: 200, friction: 15 },
     onRest: () => {
       // If needed to reset something after animation
     }
   });
 
-  const handleClick = (e: any) => {
-    e.stopPropagation();
-    if (!isPulling) {
-      onPull();
-    }
-  };
+  // 获取拉杆臂的 THREE.Object3D 实例
+  const leverArmMesh = nodes.lever_arm as THREE.Mesh;
 
-  const materialColor = hovered ? "#9ca3af" : "#d1d5db"; // Zinc-400 vs Zinc-300
+  // 使用 useFrame 直接操作 THREE.Object3D 的旋转
+  useFrame(() => {
+    if (leverArmMesh) {
+      // 将 useSpring 的值应用到拉杆臂的 X 轴旋转
+      // rotation.get() 返回一个数组 [x, y, z]，我们只取 x
+      leverArmMesh.rotation.x = (rotation.get() as number[])[0];
+    }
+  });
 
   return (
-    <group position={[3.5, -1, 0]}>
-      {/* Base of the lever (Fixed) */}
-      <Cylinder args={[0.5, 0.6, 0.5, 32]} position={[0, 0.25, 0]} castShadow receiveShadow>
-        <meshStandardMaterial color="#e5e7eb" roughness={0.5} metalness={0.8} />
-      </Cylinder>
-
-      {/* Pivot Point Group */}
-      <animated.group rotation={rotation as any}>
-        {/* The Shaft (Cylinder) */}
-        <Cylinder 
-          args={[0.1, 0.1, 3.5, 16]} 
-          position={[0, 1.75, 0]} 
-          castShadow 
-          receiveShadow
-        >
-           <meshStandardMaterial color="#9ca3af" roughness={0.3} metalness={0.6} />
-        </Cylinder>
-
-        {/* The Handle (Sphere) - The interactive part */}
-        <Sphere 
-          args={[0.5, 32, 32]} 
-          position={[0, 3.5, 0]} 
-          onClick={handleClick}
-          onPointerOver={() => setHover(true)}
-          onPointerOut={() => setHover(false)}
-          castShadow
-          receiveShadow
-        >
-          <meshStandardMaterial 
-            color={materialColor} 
-            roughness={0.2} 
-            metalness={0.1} 
-            emissive={hovered ? "#e5e7eb" : "#000000"}
-            emissiveIntensity={0.2}
-          />
-        </Sphere>
-      </animated.group>
-    </group>
+    // Lever 组件现在不渲染任何内容，它直接操作场景中的 THREE.Object3D
+    // 如果需要点击事件，需要通过 Canvas 上的 Raycasting 来实现
+    null
   );
 };
 
@@ -95,12 +65,7 @@ const Lever: React.FC<LeverProps> = ({ onPull, isPulling }) => {
  * Individual Reel Component.
  * It's a Cylinder with 8 radial segments (octagonal prism), rotated to roll on X-axis.
  */
-const Reel: React.FC<ReelProps> = ({ index, spinning, stopDelay }) => {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  // Calculate position based on index (-1, 0, 1) to center them
-  const xPos = (index - 1) * (REEL_WIDTH + REEL_GAP);
-
+const Reel: React.FC<ReelProps> = ({ index, spinning, stopDelay, nodes }) => {
   // We use a spring to handle the target rotation
   // When spinning, we add a large amount to rotation
   // When stopped, we snap to the nearest face
@@ -135,32 +100,20 @@ const Reel: React.FC<ReelProps> = ({ index, spinning, stopDelay }) => {
       : { mass: 2, tension: 180, friction: 20 }  // Bouncy snap on stop
   });
 
+  // 获取对应滚轮的 THREE.Object3D 实例
+  // 假设滚轮在 GLTF 中命名为 reel_1, reel_2, reel_3
+  const reelMesh = nodes[`reel_${index + 1}`] as THREE.Mesh;
+
+  // 使用 useFrame 直接操作 THREE.Object3D 的旋转
+  useFrame(() => {
+    if (reelMesh) {
+      // 将 useSpring 的值应用到滚轮的 X 轴旋转
+      reelMesh.rotation.x = rotationX.get();
+    }
+  });
+
   return (
-    <group position={[xPos, 0, 0]}>
-        {/* 
-            Cylinder Args: [radiusTop, radiusBottom, height, radialSegments] 
-            Rotation: Z=90deg to lay it flat horizontally
-        */}
-      <animated.mesh 
-        ref={meshRef} 
-        rotation-z={Math.PI / 2} 
-        rotation-x={rotationX}
-        castShadow 
-        receiveShadow
-      >
-        <cylinderGeometry args={[REEL_RADIUS, REEL_RADIUS, REEL_WIDTH, REEL_SEGMENTS]} />
-        {/* 
-           Material: Very light grey, almost white. 
-           Flat shading helps emphasize the 8 faces.
-        */}
-        <meshStandardMaterial 
-          color="#f8fafc" 
-          roughness={0.3} 
-          metalness={0.1} 
-          flatShading={true} 
-        />
-      </animated.mesh>
-    </group>
+    null // Reel 组件现在不渲染任何内容，它直接操作场景中的 THREE.Object3D
   );
 };
 
@@ -176,6 +129,45 @@ const Floor = () => {
     </mesh>
   );
 };
+
+/**
+ * 此组件用于加载GLB模型并分发其部件。
+ * 您需要在这里链接您的模型文件和对象名称。
+ */
+const Model: React.FC<any> = ({ spinning, leverPulling, handleLeverPull }) => {
+  // 将您的 .glb 文件放置在项目的 /public 文件夹下。
+  const { nodes, scene } = useGLTF('/models/slot-machine.glb');
+
+  // 重要提示: 这里的名称 ('body', 'reel_1', 'reel_2' 等) 必须
+  // 与您在3D建模软件 (如 Blender) 中为对象设置的名称完全匹配。
+  // 为了让拉杆正常工作，最好将其分为一个静态的 'lever_base' 和一个可动的 'lever_arm'。
+
+  return (
+    //model rotation 整体旋转调整
+    <group position={[0, -0.5 , 0]} scale={1.0} rotation={[0, Math.PI * 2, 0]}> {/* 使用 position 调整模型位置 */}
+      {/* 直接渲染原始的 GLTF 场景，确保动画和交互能正确应用 */}
+      <primitive
+        object={scene}
+        onClick={(e: ThreeEvent<MouseEvent>) => {
+          // 阻止事件冒泡，这是一个好习惯
+          e.stopPropagation();
+          // 检查被点击的网格(mesh)的名称是否为 'lever_arm'
+          // 这个名称是在您的3D建模软件中设置的
+          if (e.object.name === 'lever_arm') {
+            handleLeverPull();
+          }
+        }}
+      />
+
+      {/* Reel 和 Lever 组件现在通过直接操作 `nodes` 中的 THREE.Object3D 来实现动画 */}
+      <Reel index={0} spinning={spinning} stopDelay={0} nodes={nodes} />
+      <Reel index={1} spinning={spinning} stopDelay={200} nodes={nodes} />
+      <Reel index={2} spinning={spinning} stopDelay={400} nodes={nodes} />
+      <Lever isPulling={leverPulling} nodes={nodes} />
+    </group>
+  );
+};
+
 
 /**
  * Main Scene Composition
@@ -202,18 +194,18 @@ const SlotMachineScene: React.FC = () => {
   };
 
   return (
-     <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 2, 8], fov: 45 }}>
+     <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 1, 5], fov: 20 }}>
       {/* Environment Configuration */}
       <color attach="background" args={['#ffffff']} />
       
       {/* Lighting: Spotlight from top, cool white */}
       <ambientLight intensity={0.4} />
       <spotLight
-        position={[0, 15, 5]}
+        position={[10,10, 15]}
         angle={0.35}
         penumbra={0.8} // Soft edges
-        intensity={1.5}
-        color="#f0f9ff" // Cool white
+        intensity={100} // 示例：将顶光强度从 1.5 增加到 2.5，使其更亮
+        color="#ff0099ff" // Cool white
         castShadow
         shadow-bias={-0.0001}
        
@@ -222,13 +214,14 @@ const SlotMachineScene: React.FC = () => {
       <pointLight position={[0, 2, 10]} intensity={0.3} color="#ffffff" />
 
       {/* Scene Content */}
-      <group position={[0, 0.5, 0]}>
-        <Reel index={0} spinning={spinning} stopDelay={0} />
-        <Reel index={1} spinning={spinning} stopDelay={200} />
-        <Reel index={2} spinning={spinning} stopDelay={400} />
-        
-        <Lever onPull={handleLeverPull} isPulling={leverPulling} />
-      </group>
+      {/* 使用 React Suspense 在模型加载时显示后备内容 (这里是null) */}
+      <Suspense fallback={null}>
+        <Model 
+          spinning={spinning}
+          leverPulling={leverPulling}
+          handleLeverPull={handleLeverPull}
+        />
+      </Suspense>
 
       <Floor />
       
@@ -237,7 +230,7 @@ const SlotMachineScene: React.FC = () => {
       {/* <OrbitControls makeDefault enablePan={false} minPolarAngle={0} maxPolarAngle={Math.PI / 2} /> */}
       
       {/* Effects */}
-      <Environment preset="city" /> {/* Just for reflections */}
+      <Environment preset="studio"   /> {/* 使用 intensity 调整环境光的强度 */}
     </Canvas>
   );
 };

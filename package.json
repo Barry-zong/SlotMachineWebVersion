@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --open /screensaver.html",
+    "3ddev": "vite --open /slot3d.html",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node src/serve.js"
