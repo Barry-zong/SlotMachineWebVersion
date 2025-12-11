@@ -50,7 +50,6 @@ const SlotLever: React.FC = () => {
       camera={{ position: [0, 0, 3], fov: 32 }}
       onPointerDown={triggerSpin}
     >
-      <color attach="background" args={['#0f172a']} />
       <ambientLight intensity={0.5} />
       {/* Overhead fill to give the handle highlights */}
       <directionalLight

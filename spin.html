@@ -15,20 +15,22 @@
       <!-- <p id="coin-hint" class="hint">Insert a coin to start spinning.</p> -->
       
       <h2 id="nickname-banner" class="hint" aria-live="polite" style="display:none;"></h2>
-      <section class="slot-machine" role="group" aria-label="Slot machine">
-        <div class="reel" data-reel="0">
-          <span class="glyph" aria-hidden="true"></span>
-        </div>
-        <div class="reel" data-reel="1">
-          <span class="glyph" aria-hidden="true"></span>
-        </div>
-        <div class="reel" data-reel="2">
-          <span class="glyph" aria-hidden="true"></span>
-        </div>
-        <div class="lever-column" aria-hidden="true">
+      <div class="slot-row">
+        <section class="slot-machine" role="group" aria-label="Slot machine">
+          <div class="reel" data-reel="0">
+            <span class="glyph" aria-hidden="true"></span>
+          </div>
+          <div class="reel" data-reel="1">
+            <span class="glyph" aria-hidden="true"></span>
+          </div>
+          <div class="reel" data-reel="2">
+            <span class="glyph" aria-hidden="true"></span>
+          </div>
+        </section>
+        <div class="lever-stand" aria-hidden="true">
           <div id="lever-root" class="lever-root"></div>
         </div>
-      </section>
+      </div>
       <p id="spin-hint" class="hintS">Pull down the lever to participate in the lottery</p>
       <output id="status" role="status" aria-live="polite"></output>
     </main>
