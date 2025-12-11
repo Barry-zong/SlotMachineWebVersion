@@ -1,26 +1,34 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { useGLTF, Environment } from '@react-three/drei';
 import { animated, useSpring } from '@react-spring/three';
+import * as THREE from 'three';
 
-const LeverArm: React.FC<{ pulling: boolean }> = ({ pulling }) => {
-  // Drive the lever arm rotation with a spring for a tactile feel.
+const LeverModel: React.FC<{ pulling: boolean }> = ({ pulling }) => {
+  const { nodes, scene } = useGLTF('/models/slot-lever.glb');
+  const leverArm = nodes.lever_arm as THREE.Object3D;
+
+  // Spring the arm around its pivot for a physical pull/release.
   const { rotation } = useSpring({
     rotation: pulling ? [-Math.PI / 2.6, 0, 0] : [Math.PI / 12, 0, 0],
     config: { mass: 1.2, tension: 220, friction: 14 }
   });
 
+  // Apply the spring value directly to the imported arm.
+  useFrame(() => {
+    if (leverArm) {
+      leverArm.rotation.x = (rotation.get() as number[])[0];
+    }
+  });
+
   return (
-    <animated.group rotation={rotation as any}>
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <cylinderGeometry args={[0.06, 0.06, 1.1, 18]} />
-        <meshStandardMaterial color="#9fb7ff" metalness={0.45} roughness={0.25} />
-      </mesh>
-      <mesh position={[0, 1.1, 0]} castShadow>
-        <sphereGeometry args={[0.18, 32, 32]} />
-        <meshStandardMaterial color="#ff4d8c" metalness={0.35} roughness={0.35} />
-      </mesh>
-    </animated.group>
+    <primitive
+      object={scene}
+      // Slightly lift and scale to fit the allotted column.
+      position={[-0.3, -0.4, 0]}
+      scale={2}
+    />
   );
 };
 
@@ -39,11 +47,18 @@ const SlotLever: React.FC = () => {
     <Canvas
       shadows
       dpr={[1, 1.8]}
-      camera={{ position: [0.8, 1.15, 2.8], fov: 32 }}
+      camera={{ position: [0, 0, 3], fov: 32 }}
       onPointerDown={triggerSpin}
     >
       <color attach="background" args={['#0f172a']} />
       <ambientLight intensity={0.5} />
+      {/* Overhead fill to give the handle highlights */}
+      <directionalLight
+        position={[0, 3.2, 0]}
+        intensity={2.4}
+        color="#ffffff"
+        castShadow
+      />
       <spotLight
         position={[3, 4, 3]}
         angle={0.4}
@@ -52,13 +67,8 @@ const SlotLever: React.FC = () => {
         color="#9fb7ff"
         castShadow
       />
-      <group position={[0, -0.25, 0]}>
-        <mesh position={[0, -0.45, 0]} castShadow>
-          <cylinderGeometry args={[0.35, 0.35, 0.25, 24]} />
-          <meshStandardMaterial color="#192138" metalness={0.25} roughness={0.6} />
-        </mesh>
-        <LeverArm pulling={pulling} />
-      </group>
+      <Environment preset="studio" />
+      <LeverModel pulling={pulling} />
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.6, 0]} receiveShadow>
         <planeGeometry args={[4, 4]} />
         <shadowMaterial opacity={0.2} />
@@ -78,3 +88,5 @@ if (container) {
 }
 
 export default SlotLever;
+
+useGLTF.preload('/models/slot-lever.glb');
