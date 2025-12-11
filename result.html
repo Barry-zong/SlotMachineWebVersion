@@ -232,7 +232,6 @@
         // 此函数收集整个流程中的所有数据并提交到服务器
         async function submitFullResult() {
           try {
-            console.log('Submitting 2 full result to /api/save-selection...');
             // 1. 从 localStorage 中收集所有数据
             const playerInfo = JSON.parse(localStorage.getItem('playerInfo') || '{}');
             const lastSpin = JSON.parse(localStorage.getItem('lastSpin') || '{}');
@@ -302,7 +301,7 @@
             hideEduToast();
           }
 
-          goSummary();
+          // 数据提交操作已移至 goSummary 函数，在用户确认后执行
         } catch (e) {
           elCode.textContent = '---';
           elFull.textContent = 'No result';
@@ -323,29 +322,36 @@
         };
         updateCountdown();
 
+        let submissionDone = false;
         async function goSummary() {
-          console.log('next submitResult Navigating to summary page...');
+          // 防止重复提交和导航
+          if (submissionDone) return;
+          submissionDone = true;
+
+          // 停止计时器
+          clearInterval(timer);
+
           // 提交完整数据，然后导航到总结页面
           await submitFullResult();
-          // window.location.href = './summary.html';
+          window.location.href = './summary.html';
         }
 
-        // const timer = setInterval(() => {
-        //   seconds -= 1;
-        //   updateCountdown();
-        //   if (seconds <= 0) {
-        //     goSummary();
-        //   }
-        // }, 1000);
+        const timer = setInterval(() => {
+          seconds -= 1;
+          updateCountdown();
+          if (seconds <= 0) {
+            goSummary();
+          }
+        }, 1000);
 
-        // document.body.addEventListener('click', goSummary);
-        // const card = document.querySelector('.card');
-        // if (card) {
-        //   card.addEventListener('click', (e) => {
-        //     e.stopPropagation();
-        //     goSummary();
-        //   });
-        // }
+        document.body.addEventListener('click', goSummary);
+        const card = document.querySelector('.card');
+        if (card) {
+          card.addEventListener('click', (e) => {
+            e.stopPropagation();
+            goSummary();
+          });
+        }
       })();
     </script>
   </body>
