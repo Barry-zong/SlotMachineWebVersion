@@ -31,6 +31,7 @@ export default defineConfig({
         allResult: resolve(__dirname, 'allResult.html'),
         summary: resolve(__dirname, 'summary.html'),
         slot3d: resolve(__dirname, 'slot3d.html'),
+        donation: resolve(__dirname, 'donation.html'),
       },
     },
   },
