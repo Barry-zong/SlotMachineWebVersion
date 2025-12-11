@@ -26,8 +26,8 @@ const LeverModel: React.FC<{ pulling: boolean }> = ({ pulling }) => {
     <primitive
       object={scene}
       // Slightly lift and scale to fit the allotted column.
-      position={[-0.3, -0.4, 0]}
-      scale={2}
+      position={[-0.55, -0.5, 0]}
+      scale={2.3}
     />
   );
 };
