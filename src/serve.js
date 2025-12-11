@@ -40,7 +40,12 @@ app.post("/api/register", async (req, res) => {
 // API endpoint to save user selections
 app.post("/api/save-selection", async (req, res) => {
   try {
-    const { educationLevel, wageLevel, occupationCategory, premiumProcessing } = req.body;
+    const { educationLevel,
+    wageLevel,
+    occupationCategory,
+    premiumProcessing,
+    winChance,
+    result, } = req.body;
     
     // Optional: capture basic metadata if available
     const ipAddress = req.ip || req.connection.remoteAddress;
@@ -52,8 +57,8 @@ app.post("/api/save-selection", async (req, res) => {
         wageLevel,
         occupationCategory,
         premiumProcessing,
-        ipAddress,
-        userAgent
+        winChance,
+        result,
       }
     });
 
