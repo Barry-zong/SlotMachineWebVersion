@@ -4,6 +4,7 @@
   background: radial-gradient(circle at top, #253c61 0%, #253c61 60%, #253c61 100%);
   color: #f5f6fb;
   font-size: 18px; /* Slightly larger base for small screens */
+  --slot-row-offset: clamp(0px, 10vw, 80px);
 }
 
 body,
@@ -193,6 +194,7 @@ h1 {
   grid-template-columns: auto minmax(120px, 180px);
   align-items: center;
   gap: 0;
+  transform: translateX(var(--slot-row-offset));
 }
 
 .lever-stand {
