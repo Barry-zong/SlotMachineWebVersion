@@ -47,10 +47,10 @@ const SlotLever: React.FC = () => {
     <Canvas
       shadows
       dpr={[1, 1.8]}
-      camera={{ position: [0, 0, 3], fov: 32 }}
+      camera={{ position: [-0.2, 0, 3], fov: 32 }}
       onPointerDown={triggerSpin}
     >
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.2} />
       {/* Overhead fill to give the handle highlights */}
       <directionalLight
         position={[0, 3.2, 0]}
